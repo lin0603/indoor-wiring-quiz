@@ -151,17 +151,71 @@ CATS = ["電容與靜電","電阻與直流電路","交流與三相電路","功�
         "電動機與控制","電工儀表","導線與絞線","導線管與配管","接地與保護裝置",
         "電機材料與單位","用電法規"]
 
+# ── 高比重「跨年度重複考點」（出現在 2 個以上年度＝幾乎必考）────────
+HOT_CONCEPTS = [
+ ("絞線股數與層數（最少7股、37股=3層、直徑3.2以上要絞線）", ["112-1-06","112-1-10","112-1-35","114-1-23","114-1-24"]),
+ ("Y↔Δ 接線與 Y-△起動（每相=線壓/√3、Δ功率=Y的3倍、起動電流1/3）", ["113-1-10","114-1-36","114-1-39"]),
+ ("銅為非磁性材料", ["112-1-03","114-1-25"]),
+ ("單相三線中性線電流＝兩相電流相減", ["113-1-37","114-1-35"]),
+ ("仟乏計量測無效功率", ["112-1-38","114-1-27"]),
+ ("自耦變壓器缺點＝絕緣不易", ["112-1-26","113-1-24"]),
+ ("變壓器額定容量單位＝kVA", ["112-1-25","113-1-29"]),
+ ("電能單位（焦耳J／度kWh）", ["112-1-36","113-1-40"]),
+ ("接地種類與接地導線線徑（低壓系統=第二種、單獨接地銅線≥8mm²）", ["113-1-08","114-1-17"]),
+ ("導線最高容許溫度／低壓絕緣電線600V", ["112-1-04","114-1-26"]),
+]
+HOT_IDS = set(i for _, ids in HOT_CONCEPTS for i in ids)
+
+def compute_weights(recs):
+    from collections import Counter, defaultdict
+    per = defaultdict(lambda: Counter())
+    tot = Counter()
+    for r in recs:
+        tot[r["cat"]] += 1
+        per[r["cat"]][r["exam"]] += 1
+    N = len(recs)
+    w = {}
+    for c in CATS:
+        n = tot[c]
+        if not n:
+            continue
+        w[c] = {
+            "n": n, "pct": round(n / N * 100, 1), "avg": round(n / 3, 1),
+            "byExam": {e: per[c][e] for e in ["112-1", "113-1", "114-1"]},
+        }
+    return w
+
+def load_rationales():
+    import glob
+    why = {}
+    for p in sorted(glob.glob(os.path.join(BASE, "data", "rationales_*.json"))):
+        try:
+            with open(p, encoding="utf-8") as f:
+                data = json.load(f)
+            for k, v in data.items():
+                if isinstance(v, list) and len(v) == 4:
+                    why[k] = v
+        except Exception as e:
+            print("!! 讀取", p, "失敗:", e)
+    return why
+
 def build_records():
+    why_map = load_rationales()
     recs = []
     for exam, num, cat, q, opts, ans, exp in Q:
         assert len(opts) == 4, (exam, num)
         assert 1 <= ans <= 4, (exam, num)
         assert cat in CATS, (exam, num, cat)
-        recs.append({
-            "id": f"{exam}-{num:02d}",
+        rid = f"{exam}-{num:02d}"
+        rec = {
+            "id": rid,
             "exam": exam, "num": num, "cat": cat,
             "q": q, "opts": opts, "ans": ans, "exp": exp,
-        })
+            "hot": rid in HOT_IDS,
+        }
+        if rid in why_map:
+            rec["why"] = why_map[rid]
+        recs.append(rec)
     # 檢查每份考卷 40 題
     from collections import Counter
     c = Counter(r["exam"] for r in recs)
@@ -169,19 +223,28 @@ def build_records():
     assert len(recs) == 120, len(recs)
     return recs
 
+def payload_obj(recs):
+    return {
+        "cats": CATS,
+        "questions": recs,
+        "weights": compute_weights(recs),
+        "hotConcepts": [{"name": n, "ids": ids} for n, ids in HOT_CONCEPTS],
+    }
+
 def write_json(recs):
     os.makedirs(os.path.join(BASE, "data"), exist_ok=True)
     path = os.path.join(BASE, "data", "questions.json")
     with open(path, "w", encoding="utf-8") as f:
-        json.dump({"cats": CATS, "questions": recs}, f, ensure_ascii=False, indent=1)
-    print("wrote", path, "(", len(recs), "questions )")
+        json.dump(payload_obj(recs), f, ensure_ascii=False, indent=1)
+    nwhy = sum(1 for r in recs if r.get("why"))
+    print("wrote", path, "(", len(recs), "questions,", nwhy, "有逐選項解析 )")
 
 def write_web(recs):
     tpl_path = os.path.join(BASE, "web", "index.template.html")
     out_path = os.path.join(BASE, "web", "index.html")
     with open(tpl_path, encoding="utf-8") as f:
         tpl = f.read()
-    payload = json.dumps({"cats": CATS, "questions": recs}, ensure_ascii=False)
+    payload = json.dumps(payload_obj(recs), ensure_ascii=False)
     out = tpl.replace("/*__DATA__*/null", payload)
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(out)
@@ -211,16 +274,28 @@ def write_anki(recs):
 .opts{color:#333}.opts div{margin:4px 0}
 .ans{color:#0a7d2c;font-weight:700;font-size:21px;margin-top:10px}
 .exp{color:#555;font-size:16px;margin-top:8px;background:#f5f7fa;padding:10px;border-radius:8px}
+.exp1{color:#333;font-size:16px;margin:8px 0;font-weight:600}
+.wok,.wno{font-size:15px;margin:5px 0;padding:7px 9px;border-radius:7px;line-height:1.5}
+.wok{background:#e6f7ec;color:#0a7d2c}.wno{background:#f7ecec;color:#8a3b3b}
 """)
     deck = genanki.Deck(2059400110, "室內配線(五股)甄試")
     for r in recs:
         labels = "①②③④"
         opts_html = "".join(f"<div>{labels[i]} {html.escape(o)}</div>" for i, o in enumerate(r["opts"]))
         ans_txt = f"{labels[r['ans']-1]} {r['opts'][r['ans']-1]}"
-        meta = f"{r['exam']}　第{r['num']}題　[{r['cat']}]"
+        meta = ("🔥 高比重考點　" if r.get("hot") else "") + f"{r['exam']}　第{r['num']}題　[{r['cat']}]"
+        if r.get("why"):
+            rows = []
+            for i, wtxt in enumerate(r["why"]):
+                mark = "✅" if i == r["ans"] - 1 else "❌"
+                cls = "wok" if i == r["ans"] - 1 else "wno"
+                rows.append(f'<div class="{cls}">{mark} {labels[i]} {html.escape(wtxt)}</div>')
+            explain = (f'<div class="exp1">{html.escape(r["exp"])}</div>' if r["exp"] else "") + "".join(rows)
+        else:
+            explain = html.escape(r["exp"] or "")
         note = genanki.Note(model=model, fields=[
             html.escape(r["q"]), opts_html, html.escape(ans_txt),
-            html.escape(r["exp"] or ""), meta], tags=[r["cat"], r["exam"]])
+            explain, meta], tags=[r["cat"], r["exam"]] + (["高比重"] if r.get("hot") else []))
         deck.add_note(note)
     os.makedirs(os.path.join(BASE, "anki"), exist_ok=True)
     out = os.path.join(BASE, "anki", "室內配線甄試.apkg")
