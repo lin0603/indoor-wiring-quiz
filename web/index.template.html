@@ -125,6 +125,10 @@ function orderSR(list){
 }
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a }
 function esc(s){ return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])) }
+function pool5(){ return QS.filter(q=>(q.site||'五股')==='五股'); }          // 你要考的五股（主池）
+function poolCat(c){ return pool5().filter(q=>q.cat===c); }
+function poolExam(e){ return QS.filter(q=>q.exam===e); }
+function siteList(){ return [...new Set(QS.filter(q=>(q.site||'五股')!=='五股').map(q=>q.site))]; }
 
 let session=null;
 const app=document.getElementById("app");
@@ -132,16 +136,17 @@ const app=document.getElementById("app");
 // ─────────── 首頁 ───────────
 function home(){
   stopListen(); session=null;
-  const total=QS.length, mst=masteredCount(), wb=wrongBookList().length, td=todayDone(), hot=hotList().length;
+  const S5=pool5();
+  const total=S5.length, mst=S5.filter(q=>mastered(q.id)).length, wb=wrongBookList().length, td=todayDone(), hot=S5.filter(q=>q.hot).length;
   const catStats=CATS.map(c=>{
-    const qs=QS.filter(q=>q.cat===c); if(!qs.length) return null;
+    const qs=S5.filter(q=>q.cat===c); if(!qs.length) return null;
     const m=qs.filter(q=>mastered(q.id)).length; const w=WEIGHTS[c]||{};
     const hasHot=qs.some(q=>q.hot);
     return {c,total:qs.length,m,pct:Math.round(m/qs.length*100),avg:w.avg,hasHot};
   }).filter(Boolean).sort((a,b)=>b.total-a.total);
   app.innerHTML=`
   <h1>室內配線(五股) 甄試刷題</h1>
-  <div class="sub">112 / 113 / 114 甄試考古題 · 共 ${total} 題 · 間隔重複 · 逐選項詳解 · 語音朗讀</div>
+  <div class="sub">112 / 113 / 114 甄試考古題 · 主池 ${total} 題 · 間隔重複 · 逐選項詳解 · 語音朗讀</div>
   <div class="card">
    <div class="row">
     <div class="stat"><div class="n br">${total}</div><div class="l">題庫總數</div></div>
@@ -153,9 +158,9 @@ function home(){
    <div class="tag" style="margin-top:6px">整體精熟度 ${Math.round(mst/total*100)}%　今日已練 ${td} 題</div>
   </div>
   <div class="btns">
-   <button onclick="start('sr', QS, '全部練習')">▶ 開始練習（高比重與錯題優先）</button>
-   <button class="ghost" onclick="startExplain(QS,'講解模式 · 全部')">📖 講解模式（看為何對 / 為何錯）</button>
-   <button class="ghost" onclick="startListen(orderSR(QS),'聽力 · 全部')">🎧 聽力模式（用聽的，免動手）</button>
+   <button onclick="start('sr', pool5(), '全部練習')">▶ 開始練習（高比重與錯題優先）</button>
+   <button class="ghost" onclick="startExplain(pool5(),'講解模式 · 全部')">📖 講解模式（看為何對 / 為何錯）</button>
+   <button class="ghost" onclick="startListen(orderSR(pool5()),'聽力 · 全部')">🎧 聽力模式（用聽的，免動手）</button>
    <div class="row">
      <button class="ghost" onclick="start('wrong', wrongBookList(), '錯題本')" ${wb?'':'disabled'}>🔁 只練錯題(${wb})</button>
      <button class="ghost" onclick="startExam()">📝 模擬考(40)</button>
@@ -174,7 +179,7 @@ function home(){
 
   <div class="sec-t"><span>依工作項目練習（每卷約幾題 = 比重）</span></div>
   <div class="grid">
-   ${catStats.map(x=>`<div class="cat" onclick="start('sr', QS.filter(q=>q.cat==='${x.c}'), '${x.c}')">
+   ${catStats.map(x=>`<div class="cat" onclick="start('sr', poolCat('${x.c}'), '${x.c}')">
      <div class="ct"><span>${x.hasHot?'🔥 ':''}${x.c}</span><span class="num">${x.m}/${x.total}</span></div>
      <div class="wt">每卷約 ${x.avg} 題</div>
      <div class="bar"><i style="width:${x.pct}%"></i></div></div>`).join("")}
@@ -182,13 +187,35 @@ function home(){
 
   <div class="sec-t"><span>依年度整卷（重心每年不同，三年都練）</span></div>
   <div class="grid">
-   ${["112-1","113-1","114-1"].map(e=>{const qs=QS.filter(q=>q.exam===e);const m=qs.filter(q=>mastered(q.id)).length;
+   ${["112-1","113-1","114-1"].map(e=>{const qs=poolExam(e);const m=qs.filter(q=>mastered(q.id)).length;
      const theme={"112-1":"觀念/單位/變壓器","113-1":"接地/電動機/法規","114-1":"電容/三相/計算"}[e];
-     return `<div class="cat" onclick="start('exam', QS.filter(q=>q.exam==='${e}'), '${e} 整卷')">
+     return `<div class="cat" onclick="start('exam', poolExam('${e}'), '${e} 整卷')">
      <div class="ct"><span>${e} 整卷</span><span class="num">${m}/${qs.length}</span></div>
      <div class="wt">重心：${theme}</div>
      <div class="bar"><i style="width:${Math.round(m/qs.length*100)}%"></i></div></div>`}).join("")}
   </div>
+
+  ${siteList().length?`<div class="sec-t"><span>🗺 其他場次補充（同分署室內配線 · 獨立練習，不併入上方五股統計）</span></div>
+  ${siteList().map(site=>{
+    const sq=QS.filter(q=>q.site===site);
+    const exams=[...new Set(sq.map(q=>q.exam))];
+    const m=sq.filter(q=>mastered(q.id)).length;
+    return `<div class="card" style="padding:12px">
+      <div style="font-weight:700;margin-bottom:8px">${site}場 · ${sq.length} 題 <span class="tag">已精熟 ${m}</span></div>
+      <div class="grid">
+        ${exams.map(e=>{const eq=poolExam(e);const em=eq.filter(q=>mastered(q.id)).length;
+          return `<div class="cat" onclick="start('exam', poolExam('${e}'), '${e}')">
+            <div class="ct"><span>${e}</span><span class="num">${em}/${eq.length}</span></div>
+            <div class="bar"><i style="width:${Math.round(em/eq.length*100)}%"></i></div></div>`}).join("")}
+      </div>
+      <div class="navbtns" style="margin-top:8px">
+        <button class="ghost sm" onclick="start('sr', QS.filter(q=>q.site==='${site}'), '${site}場練習')">▶ 練習</button>
+        <button class="ghost sm" onclick="startExplain(QS.filter(q=>q.site==='${site}'),'講解 · ${site}')">📖 講解</button>
+        <button class="ghost sm" onclick="startListen(orderSR(QS.filter(q=>q.site==='${site}')),'聽力 · ${site}')">🎧 聽</button>
+      </div>
+    </div>`;
+  }).join("")}`:''}
+
   <div class="link" onclick="resetAll()">重置所有進度</div>`;
 }
 
@@ -200,7 +227,7 @@ function start(mode, list, title){
   quiz();
 }
 function startExam(){
-  session={list:shuffle(QS).slice(0,40), i:0, mode:'sim', title:'模擬考', correct:0, wrongThisRun:[], answered:false, start:Date.now()};
+  session={list:shuffle(pool5()).slice(0,40), i:0, mode:'sim', title:'模擬考(五股)', correct:0, wrongThisRun:[], answered:false, start:Date.now()};
   quiz();
 }
 function quiz(){

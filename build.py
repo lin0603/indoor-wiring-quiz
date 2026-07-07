@@ -232,11 +232,12 @@ def build_records():
             rec["why"] = why_map[rid]
         recs.append(rec)
     recs += load_extra()   # 花蓮 / 宜蘭 等其他場次（各自獨立、不併入五股統計）
-    # 檢查每份考卷 40 題
+    # 檢查五股每份考卷 40 題
     from collections import Counter
-    c = Counter(r["exam"] for r in recs)
+    five = [r for r in recs if r.get("site", "五股") == "五股"]
+    c = Counter(r["exam"] for r in five)
     assert all(v == 40 for v in c.values()), c
-    assert len(recs) == 120, len(recs)
+    assert len(five) == 120, len(five)
     return recs
 
 def payload_obj(recs):
