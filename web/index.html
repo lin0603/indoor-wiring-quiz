@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1420">
+<title>室內配線(五股)甄試 · 刷題</title>
+<style>
+:root{
+ --bg:#0f1420; --card:#182031; --card2:#1e2740; --line:#2b3752;
+ --tx:#e8edf7; --dim:#8b98b4; --brand:#4f8cff; --brand2:#7aa7ff;
+ --ok:#2ec77a; --okbg:#123524; --bad:#ff6b6b; --badbg:#3a1720; --warn:#ffb84d;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);
+ font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif}
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);line-height:1.55}
+.wrap{max-width:680px;margin:0 auto;padding:16px 16px 40px}
+h1{font-size:20px;margin:6px 0 2px}
+.sub{color:var(--dim);font-size:13px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.stat{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.stat .n{font-size:26px;font-weight:800;line-height:1.1}
+.stat .l{font-size:12px;color:var(--dim);margin-top:3px}
+.n.ok{color:var(--ok)}.n.bad{color:var(--bad)}.n.br{color:var(--brand2)}
+button{font-family:inherit;font-size:16px;cursor:pointer;border:none;border-radius:14px;
+ padding:14px 16px;color:#fff;background:var(--brand);font-weight:700;width:100%;transition:.12s}
+button:active{transform:scale(.98)}
+button.ghost{background:var(--card2);color:var(--tx);border:1px solid var(--line);font-weight:600}
+button.sm{padding:9px 12px;font-size:14px;border-radius:11px}
+.btns{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cat{background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:11px 12px;cursor:pointer;transition:.12s}
+.cat:active{transform:scale(.98)}
+.cat .ct{font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.cat .num{color:var(--dim);font-size:12px;font-weight:500}
+.bar{height:6px;background:#0c1120;border-radius:6px;margin-top:8px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--ok));border-radius:6px;transition:.4s}
+.sec-t{font-size:13px;color:var(--dim);margin:18px 2px 8px;font-weight:700;letter-spacing:.03em}
+/* quiz */
+.qtop{display:flex;justify-content:space-between;align-items:center;color:var(--dim);font-size:13px;margin-bottom:10px}
+.pbar{height:7px;background:var(--card2);border-radius:7px;overflow:hidden;margin-bottom:14px}
+.pbar>i{display:block;height:100%;background:var(--brand);transition:.3s}
+.meta{color:var(--dim);font-size:12.5px;margin-bottom:6px}
+.badge{display:inline-block;background:var(--card2);border:1px solid var(--line);border-radius:20px;
+ padding:2px 10px;font-size:11.5px;color:var(--brand2)}
+.q{font-size:19px;font-weight:600;margin:6px 0 16px;line-height:1.5}
+.opt{display:flex;gap:11px;align-items:flex-start;background:var(--card2);border:1.5px solid var(--line);
+ border-radius:13px;padding:13px 14px;margin-bottom:10px;cursor:pointer;transition:.12s;font-size:16px}
+.opt:active{transform:scale(.99)}
+.opt .k{flex:0 0 26px;height:26px;border-radius:50%;background:#0c1120;border:1px solid var(--line);
+ display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--dim)}
+.opt.correct{border-color:var(--ok);background:var(--okbg)}.opt.correct .k{background:var(--ok);color:#062;border-color:var(--ok)}
+.opt.wrong{border-color:var(--bad);background:var(--badbg)}.opt.wrong .k{background:var(--bad);color:#511;border-color:var(--bad)}
+.opt.dis{cursor:default}
+.exp{background:var(--card2);border-left:3px solid var(--brand);border-radius:10px;padding:12px 14px;
+ font-size:14.5px;color:#cdd6ea;margin:4px 0 14px;display:none}
+.exp.show{display:block}
+.exp b{color:var(--warn)}
+.fb{font-weight:800;font-size:16px;margin:2px 0 10px;display:none}
+.fb.show{display:block}.fb.ok{color:var(--ok)}.fb.bad{color:var(--bad)}
+.hide{display:none!important}
+.link{color:var(--brand2);font-size:13px;text-align:center;margin-top:14px;cursor:pointer}
+.tag{font-size:11px;color:var(--dim)}
+.wlist{max-height:340px;overflow:auto}
+.wq{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-bottom:8px;font-size:14px}
+.wq .qa{color:var(--ok);font-size:13px;margin-top:4px}
+.big{font-size:44px;font-weight:800;text-align:center}
+.center{text-align:center}
+kbd{background:#0c1120;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+const DATA = {"cats": ["電容與靜電", "電阻與直流電路", "交流與三相電路", "功率與功率因數", "變壓器", "電動機與控制", "電工儀表", "導線與絞線", "導線管與配管", "接地與保護裝置", "電機材料與單位", "用電法規"], "questions": [{"id": "112-1-01", "exam": "112-1", "num": 1, "cat": "導線與絞線", "q": "電燈及電熱工程所使用單線直徑不得小於多少公厘？", "opts": ["1.25", "1.6", "2.0", "2.6"], "ans": 2, "exp": "電燈電熱工程單線最小直徑 1.6mm。"}, {"id": "112-1-02", "exam": "112-1", "num": 2, "cat": "導線與絞線", "q": "周圍溫度與導線之安培容量關係為？", "opts": ["成正比", "成反比", "平方成正比", "立方成正比"], "ans": 2, "exp": "溫度愈高散熱愈差，安培容量愈小 → 成反比。"}, {"id": "112-1-03", "exam": "112-1", "num": 3, "cat": "電機材料與單位", "q": "銅是一種？", "opts": ["半導體材料", "非磁性材料", "絕緣材料", "磁性材料"], "ans": 2, "exp": "銅為良導體且不被磁鐵吸引 → 非磁性材料。"}, {"id": "112-1-04", "exam": "112-1", "num": 4, "cat": "導線與絞線", "q": "低壓 PE 絕緣導線，其絕緣物之最高容許溫度為多少℃？", "opts": ["60", "75", "70", "65"], "ans": 2, "exp": "PE(交連聚乙烯)容許溫度 75℃。"}, {"id": "112-1-05", "exam": "112-1", "num": 5, "cat": "電阻與直流電路", "q": "材質及長度相同之銅導線，其截面積愈大者電阻？", "opts": ["愈大", "愈小", "和截面積無關", "不變"], "ans": 2, "exp": "R=ρL/A，A愈大R愈小。"}, {"id": "112-1-06", "exam": "112-1", "num": 6, "cat": "導線與絞線", "q": "七股絞線以不加紮線之分岐連接時，每股應紮幾圈以上？", "opts": ["5", "6", "9", "11"], "ans": 2, "exp": ""}, {"id": "112-1-07", "exam": "112-1", "num": 7, "cat": "導線與絞線", "q": "燈具線及花線截面積不得小於多少平方公厘？", "opts": ["1.75", "0.75", "1.25", "0.25"], "ans": 2, "exp": "燈具線/花線最小 0.75mm²。"}, {"id": "112-1-08", "exam": "112-1", "num": 8, "cat": "導線與絞線", "q": "燈用軌道之銅導體最小應採用多少平方公厘以上？", "opts": ["2.0", "5.5", "1.6", "2.6"], "ans": 2, "exp": "燈用軌道銅導體最小 5.5mm²。"}, {"id": "112-1-09", "exam": "112-1", "num": 9, "cat": "導線管與配管", "q": "薄導線管不得使用於超過多少伏之高壓配管工程？", "opts": ["380", "600", "11000", "220"], "ans": 2, "exp": "薄金屬管(EMT)限用於 600V 以下。"}, {"id": "112-1-10", "exam": "112-1", "num": 10, "cat": "導線與絞線", "q": "電燈及電熱工程所使用絞線截面積不得小於多少平方公厘？", "opts": ["1.25", "3.5", "2.0", "2.6"], "ans": 2, "exp": "電燈電熱絞線最小 3.5mm²。"}, {"id": "112-1-11", "exam": "112-1", "num": 11, "cat": "電機材料與單位", "q": "下列何者的單位不是伏特？", "opts": ["電荷", "電動勢", "電壓", "電位差"], "ans": 1, "exp": "電荷單位為庫侖(C)；其餘皆為伏特。"}, {"id": "112-1-12", "exam": "112-1", "num": 12, "cat": "功率與功率因數", "q": "5kW 電動機每日平均運轉 90 分鐘，每度電費 4 元，一個月(30日)需付電費多少元？", "opts": ["90", "900", "180", "450"], "ans": 2, "exp": "5kW×1.5h×30日×4元 = 900 元。"}, {"id": "112-1-13", "exam": "112-1", "num": 13, "cat": "變壓器", "q": "一部 50kVA、2200/220V 降壓變壓器，當高壓側電壓為 1100V 時，低壓側電壓為多少伏特？", "opts": ["220", "2200", "110", "1100"], "ans": 3, "exp": "匝比 2200/220=10；1100/10 = 110V。"}, {"id": "112-1-14", "exam": "112-1", "num": 14, "cat": "電工儀表", "q": "二瓦特計法測量三相功率，若兩瓦特計讀數相等，則功率因數為？", "opts": ["0.707", "0.5", "0.866", "以上皆非"], "ans": 4, "exp": "兩表讀數相等 → 功率因數=1，選項未列 → 以上皆非。"}, {"id": "112-1-15", "exam": "112-1", "num": 15, "cat": "電機材料與單位", "q": "電導的單位為？", "opts": ["S", "A", "Ω", "W"], "ans": 1, "exp": "電導單位西門子(S)=1/Ω。"}, {"id": "112-1-16", "exam": "112-1", "num": 16, "cat": "電動機與控制", "q": "發電機之轉速增加，則感應電勢？", "opts": ["減少", "變大", "不變", "不一定"], "ans": 2, "exp": "E∝轉速，轉速增加感應電勢變大。"}, {"id": "112-1-17", "exam": "112-1", "num": 17, "cat": "電阻與直流電路", "q": "某電熱器之額定為 100V/250W，其等效電阻為多少歐姆？", "opts": ["5", "12.5", "8", "2.5"], "ans": 3, "exp": "官方答案(3)。註：依 R=V²/P=100²/250=40Ω 與選項不符，屬題目數值疑誤植，記官方答案即可。"}, {"id": "112-1-18", "exam": "112-1", "num": 18, "cat": "變壓器", "q": "某單相變壓器無載電流 1A、無載功率因數 0.18，則磁化電流與鐵損電流各為？", "opts": ["0.18A，0.8A", "0.18A，0.984A", "0.8A，0.18A", "0.984A，0.18A"], "ans": 4, "exp": "鐵損電流=1×0.18=0.18A；磁化電流=1×√(1-0.18²)=0.984A。"}, {"id": "112-1-19", "exam": "112-1", "num": 19, "cat": "電機材料與單位", "q": "螺線管定則中之姆指表示？", "opts": ["磁力線 N 極出發之方向", "磁力線 S 極出發之方向", "感應電勢之方向", "線圈中之電流方向"], "ans": 1, "exp": "右手螺旋定則：姆指指磁力線(N極出發)方向。"}, {"id": "112-1-20", "exam": "112-1", "num": 20, "cat": "電機材料與單位", "q": "導體以最大速度平行磁力線運動，則所產生之感應電勢為？", "opts": ["最大", "零", "最小", "視電機而異"], "ans": 2, "exp": "平行磁力線運動不切割磁力線 → 感應電勢為零。"}, {"id": "112-1-21", "exam": "112-1", "num": 21, "cat": "變壓器", "q": "單相變壓器(6900-6600-6300-6000-5700/110V)接於 6600V 分接頭時二次側得 105V，欲得 110V，一次側分接頭應改接至？", "opts": ["6900V", "6000V", "6300V", "5700V"], "ans": 3, "exp": "欲提高二次電壓需降低一次分接頭匝數：6600×105/110≈6300V。"}, {"id": "112-1-22", "exam": "112-1", "num": 22, "cat": "變壓器", "q": "變壓器無載電流不包含下列哪個電流？", "opts": ["磁化電流", "渦流損電流", "磁滯損電流", "銅損電流"], "ans": 4, "exp": "無載時二次開路無負載電流，故不含銅損電流。"}, {"id": "112-1-23", "exam": "112-1", "num": 23, "cat": "變壓器", "q": "配電變壓器 3300/110V，若電源電壓 3300V 接在 3000V 的分接頭上，則二次側電壓為？", "opts": ["121V", "111V", "101V", "91V"], "ans": 1, "exp": "3300×(110/3000)=121V。"}, {"id": "112-1-24", "exam": "112-1", "num": 24, "cat": "電機材料與單位", "q": "由磁場作用使線圈產生電流效應是由誰所發現？", "opts": ["奧斯特", "法拉第", "佛萊明", "安培"], "ans": 2, "exp": "法拉第電磁感應定律。"}, {"id": "112-1-25", "exam": "112-1", "num": 25, "cat": "變壓器", "q": "變壓器的額定容量單位為？", "opts": ["Hp", "kW", "kVA", "kVAR"], "ans": 3, "exp": "變壓器以視在功率標示，單位 kVA。"}, {"id": "112-1-26", "exam": "112-1", "num": 26, "cat": "變壓器", "q": "下列哪一項不是自耦變壓器的優點？", "opts": ["材料少，成本低", "損失少，效率高", "電壓調整率小", "絕緣容易"], "ans": 4, "exp": "自耦變壓器一二次共用繞組，絕緣不易 → 非優點。"}, {"id": "112-1-27", "exam": "112-1", "num": 27, "cat": "電阻與直流電路", "q": "負電阻溫度係數的材料，當其溫度愈高，電阻愈？", "opts": ["小", "不變", "大", "不一定"], "ans": 1, "exp": "負溫度係數(如半導體/碳)溫度愈高電阻愈小。"}, {"id": "112-1-28", "exam": "112-1", "num": 28, "cat": "變壓器", "q": "若把一次線圈匝數增加，則二次線圈兩端之電壓將？", "opts": ["升高", "降低", "不變", "不一定"], "ans": 2, "exp": "Vs=Vp×(Ns/Np)，Np增加 → Vs降低。"}, {"id": "112-1-29", "exam": "112-1", "num": 29, "cat": "變壓器", "q": "變壓器分接頭主要用途為？", "opts": ["調整電流", "調整功率", "調整電壓", "調整功率因數"], "ans": 3, "exp": "分接頭改變匝數比以調整電壓。"}, {"id": "112-1-30", "exam": "112-1", "num": 30, "cat": "電機材料與單位", "q": "能量 1 焦耳代表？", "opts": ["1 安培小時", "1 安培秒", "1 仟瓦小時", "1 瓦特秒"], "ans": 4, "exp": "1 焦耳 = 1 瓦特‧秒(W·s)。"}, {"id": "112-1-31", "exam": "112-1", "num": 31, "cat": "導線管與配管", "q": "薄導線管之管徑按 CNS 規定以下列何者表示？", "opts": ["內徑之奇數", "內徑之偶數", "外徑之偶數", "外徑之奇數"], "ans": 4, "exp": "薄管(EMT)以外徑奇數表示(15,19,25…)；厚管以內徑偶數表示。"}, {"id": "112-1-32", "exam": "112-1", "num": 32, "cat": "接地與保護裝置", "q": "無熔線開關之 AF 係表示？", "opts": ["負載容量", "啟斷容量", "跳脫容量", "框架容量"], "ans": 4, "exp": "AF=Ampere Frame=框架容量；AT=跳脫容量。"}, {"id": "112-1-33", "exam": "112-1", "num": 33, "cat": "用電法規", "q": "設施電氣為醫療設備工程時，限用？", "opts": ["防火線", "耐熱線", "消防線", "電纜線"], "ans": 4, "exp": "醫療場所限用電纜線。"}, {"id": "112-1-34", "exam": "112-1", "num": 34, "cat": "導線管與配管", "q": "EMT 管不得配裝於多少伏以上之高壓配管工程？", "opts": ["220", "380", "440", "600"], "ans": 4, "exp": "EMT 限用於 600V 以下。"}, {"id": "112-1-35", "exam": "112-1", "num": 35, "cat": "導線與絞線", "q": "超過 1 公尺以上之金屬管所使用導線直徑在多少公厘以上應使用絞線？", "opts": ["1.2", "2.0", "2.6", "3.2"], "ans": 4, "exp": "導線直徑 3.2mm 以上應改用絞線。"}, {"id": "112-1-36", "exam": "112-1", "num": 36, "cat": "電機材料與單位", "q": "電能的單位係以下列何者表示？", "opts": ["J", "W", "C", "以上皆非"], "ans": 4, "exp": "官方答案(4)。註：嚴格說電能可用焦耳(J)，本題官方視常用單位「度(kWh)」不在選項而選以上皆非；114年同類題答案為J，以當次考卷為準。"}, {"id": "112-1-37", "exam": "112-1", "num": 37, "cat": "功率與功率因數", "q": "一般稱一度電是指 1kW 的負載使用多少小時？", "opts": ["10", "24", "100", "以上皆非"], "ans": 4, "exp": "1 度 = 1kWh = 1kW 使用 1 小時，選項未列 → 以上皆非。"}, {"id": "112-1-38", "exam": "112-1", "num": 38, "cat": "電工儀表", "q": "仟乏計係測量負載之？", "opts": ["視在功率", "功率因數", "有效功率", "以上皆非"], "ans": 4, "exp": "仟乏計(kVAR計)測無效功率，選項未列 → 以上皆非。"}, {"id": "112-1-39", "exam": "112-1", "num": 39, "cat": "電機材料與單位", "q": "電感的單位是？", "opts": ["法拉", "瓦特", "伏特", "以上皆非"], "ans": 4, "exp": "電感單位為亨利(H)，選項未列 → 以上皆非。"}, {"id": "112-1-40", "exam": "112-1", "num": 40, "cat": "電機材料與單位", "q": "鑽頭大小係以下列何者表示？", "opts": ["長度", "半徑", "截面積", "以上皆非"], "ans": 4, "exp": "鑽頭以直徑表示，選項未列 → 以上皆非。"}, {"id": "113-1-01", "exam": "113-1", "num": 1, "cat": "用電法規", "q": "屋外場所設置電動車供電設備之耦合裝置，設於離停車位置之地面高度多少公厘以上且在1.2公尺以下？", "opts": ["600", "700", "800", "900"], "ans": 1, "exp": "耦合裝置離地 600mm 以上、1.2m 以下。"}, {"id": "113-1-02", "exam": "113-1", "num": 2, "cat": "用電法規", "q": "電動車供電設備之幹線及分路過電流保護裝置，應為何種型式？", "opts": ["連續責務", "間歇性責務", "週期性責務", "變動責務"], "ans": 1, "exp": "電動車充電屬連續責務。"}, {"id": "113-1-03", "exam": "113-1", "num": 3, "cat": "用電法規", "q": "需量契約用戶之需量時段，台電公司目前採用多少分鐘？", "opts": ["15", "30", "45", "60"], "ans": 1, "exp": "以 15 分鐘為一需量時段。"}, {"id": "113-1-04", "exam": "113-1", "num": 4, "cat": "電動機與控制", "q": "電動機使用電磁開關作正逆轉控制要有互鎖功能，其主要目的在？", "opts": ["防止主電路短路", "防止過載", "防止接點接觸不良", "電線優質化"], "ans": 1, "exp": "互鎖防止正逆轉接觸器同時動作造成主電路短路。"}, {"id": "113-1-05", "exam": "113-1", "num": 5, "cat": "接地與保護裝置", "q": "特別低壓設施之二次側電路不得如何處置？", "opts": ["接地", "加裝隔離設備", "加裝過電流設備", "加裝防護設備"], "ans": 1, "exp": "特低壓二次側不得接地。"}, {"id": "113-1-06", "exam": "113-1", "num": 6, "cat": "接地與保護裝置", "q": "特別低壓工程之變壓器二次側電壓應在多少伏以下？", "opts": ["30", "20", "10", "5"], "ans": 1, "exp": "特別低壓二次側 30V 以下。"}, {"id": "113-1-07", "exam": "113-1", "num": 7, "cat": "電工儀表", "q": "惠斯登電橋平衡時，檢流計 G 應指示為何？", "opts": ["0", "1", "2", "3"], "ans": 1, "exp": "電橋平衡時無電流通過檢流計 → 指示 0。"}, {"id": "113-1-08", "exam": "113-1", "num": 8, "cat": "接地與保護裝置", "q": "內線系統單獨接地，其銅接地導線最小不得小於多少平方公厘？", "opts": ["8", "5.5", "14", "22"], "ans": 1, "exp": "單獨接地銅接地導線最小 8mm²。"}, {"id": "113-1-09", "exam": "113-1", "num": 9, "cat": "接地與保護裝置", "q": "特別低壓設施應選用導線之線徑不得低於多少公厘？", "opts": ["0.8", "1.0", "1.2", "1.6"], "ans": 1, "exp": "特低壓導線線徑不低於 0.8mm。"}, {"id": "113-1-10", "exam": "113-1", "num": 10, "cat": "電動機與控制", "q": "三相感應電動機作 Y-△起動時，起動電流約為全電壓直接起動之多少倍？", "opts": ["1/3", "3", "1/2", "以上皆非"], "ans": 1, "exp": "Y-△起動電流降為直接起動之 1/3。"}, {"id": "113-1-11", "exam": "113-1", "num": 11, "cat": "電機材料與單位", "q": "鋁線之導電率約為銅線之百分之多少？", "opts": ["30", "60", "40", "50"], "ans": 2, "exp": "鋁導電率約為銅的 60%。"}, {"id": "113-1-12", "exam": "113-1", "num": 12, "cat": "導線與絞線", "q": "MI 電纜彎曲時，其內側彎曲半徑應為電纜外徑之多少倍以上為原則？", "opts": ["6", "5", "4", "3"], "ans": 2, "exp": "MI 電纜內側彎曲半徑≥外徑 5 倍。"}, {"id": "113-1-13", "exam": "113-1", "num": 13, "cat": "導線與絞線", "q": "交連 PE 電纜其內部的交連 PE 是做？", "opts": ["導電用", "複合用", "遮蔽用", "絕緣用"], "ans": 4, "exp": "交連PE(XLPE)為絕緣材料。"}, {"id": "113-1-14", "exam": "113-1", "num": 14, "cat": "導線管與配管", "q": "金屬導線槽不得裝於下列何處？", "opts": ["公共場所", "易燃性塵埃場所", "潮濕場所", "電梯之配線"], "ans": 2, "exp": "易燃性塵埃/氣體場所不得裝金屬導線槽。"}, {"id": "113-1-15", "exam": "113-1", "num": 15, "cat": "導線與絞線", "q": "高壓接戶線之電力電纜如屬於 25kV 級者，其最小線徑應為多少平方公厘？", "opts": ["14", "30", "38", "60"], "ans": 3, "exp": "25kV 級最小線徑 38mm²。"}, {"id": "113-1-16", "exam": "113-1", "num": 16, "cat": "導線管與配管", "q": "敷設明管時，薄金屬管距出線盒多少公尺以內應裝設護管鐵固定？", "opts": ["0.5", "1", "1.5", "2"], "ans": 2, "exp": "距出線盒 1m 內應以護管鐵固定。"}, {"id": "113-1-17", "exam": "113-1", "num": 17, "cat": "導線與絞線", "q": "低壓連接接戶線之長度，自第一支持點起以多少公尺為限？", "opts": ["20", "60", "40", "30"], "ans": 2, "exp": "低壓連接接戶線自第一支持點起 60m 為限。"}, {"id": "113-1-18", "exam": "113-1", "num": 18, "cat": "變壓器", "q": "變壓器之一次側係指？", "opts": ["高壓側", "低壓側", "負載側", "電源側"], "ans": 4, "exp": "一次側=電源(輸入)側。"}, {"id": "113-1-19", "exam": "113-1", "num": 19, "cat": "接地與保護裝置", "q": "低壓屋內線路新設時，其絕緣電阻建議在多少 MΩ 以上？", "opts": ["0.1", "1", "5", "10"], "ans": 2, "exp": "新設低壓屋內線路絕緣電阻建議 1MΩ 以上。"}, {"id": "113-1-20", "exam": "113-1", "num": 20, "cat": "變壓器", "q": "下列何者無法利用變壓器之開路試驗求得？", "opts": ["鐵損", "激磁導納", "銅損", "無載電流"], "ans": 3, "exp": "銅損須由短路試驗求得；開路試驗求鐵損。"}, {"id": "113-1-21", "exam": "113-1", "num": 21, "cat": "電動機與控制", "q": "伺服電動機所要求的轉矩特性為？", "opts": ["高速時大轉矩", "低速時小轉矩", "低速時小轉矩，高速時大轉矩", "低速時大轉矩，高速時小轉矩"], "ans": 4, "exp": "伺服馬達需低速大轉矩、高速小轉矩。"}, {"id": "113-1-22", "exam": "113-1", "num": 22, "cat": "電動機與控制", "q": "線性感應電動機之一、二次側間隙比旋轉類者？", "opts": ["小", "大", "不一定", "以上均可"], "ans": 2, "exp": "線性馬達氣隙較旋轉型大。"}, {"id": "113-1-23", "exam": "113-1", "num": 23, "cat": "電動機與控制", "q": "無刷電動機在檢測轉子磁極位置的元件，下列何者有誤？", "opts": ["霍爾元件", "磁阻元件", "電阻元件", "光遮斷器"], "ans": 3, "exp": "電阻元件無法感測磁極位置。"}, {"id": "113-1-24", "exam": "113-1", "num": 24, "cat": "變壓器", "q": "下列哪一項不是自耦變壓器的優點？", "opts": ["材料少，成本低", "損失少，效率高", "絕緣容易", "電壓調整率小"], "ans": 3, "exp": "自耦變壓器絕緣不易 → 非優點。"}, {"id": "113-1-25", "exam": "113-1", "num": 25, "cat": "電工儀表", "q": "對於比流器的敘述，下列何者錯誤？", "opts": ["簡稱 C.T", "二次側電流通常設計為 0.5 安培", "使用時串聯於電路", "使用時不可以使二次側開路"], "ans": 2, "exp": "比流器二次側額定通常為 5A(非0.5A)。"}, {"id": "113-1-26", "exam": "113-1", "num": 26, "cat": "功率與功率因數", "q": "功率因數(PF)單位為？", "opts": ["伏安(VA)", "乏(VAR)", "瓦特(watt)", "沒有單位"], "ans": 4, "exp": "功率因數為比值，無單位。"}, {"id": "113-1-27", "exam": "113-1", "num": 27, "cat": "變壓器", "q": "在變壓器的等效電路中，下列何者代表變壓器的鐵損？", "opts": ["一次線圈電阻", "二次線圈電阻", "激磁電導", "漏磁電抗"], "ans": 3, "exp": "鐵損以激磁電導(Gc)表示。"}, {"id": "113-1-28", "exam": "113-1", "num": 28, "cat": "電動機與控制", "q": "一部三相 8極、5馬力、380V、60Hz 感應電動機，半載時機械損 200W、轉子銅損 100W，則半載時轉速約為？", "opts": ["858rpm", "758rpm", "658rpm", "558rpm"], "ans": 1, "exp": "同步轉速 Ns=120×60/8=900rpm；由損失估轉差後約 858rpm。"}, {"id": "113-1-29", "exam": "113-1", "num": 29, "cat": "變壓器", "q": "變壓器的額定容量單位為？", "opts": ["Hp", "kW", "kVAR", "以上皆非"], "ans": 4, "exp": "變壓器額定為視在功率 kVA，選項未列 → 以上皆非。"}, {"id": "113-1-30", "exam": "113-1", "num": 30, "cat": "變壓器", "q": "當負載增加時，變壓器的電壓比(一次/二次)將？", "opts": ["變小", "變大", "不變", "不一定"], "ans": 2, "exp": "負載增加二次電壓下降，Vp/Vs 變大。"}, {"id": "113-1-31", "exam": "113-1", "num": 31, "cat": "接地與保護裝置", "q": "特別低壓工程之變壓器一次側電壓應在多少伏以下？", "opts": ["110", "150", "220", "250"], "ans": 4, "exp": "特低壓變壓器一次側電壓 250V 以下。"}, {"id": "113-1-32", "exam": "113-1", "num": 32, "cat": "接地與保護裝置", "q": "低壓突波保護裝置依規定得裝設於多少伏以下電路？", "opts": ["220", "380", "440", "以上皆非"], "ans": 4, "exp": "官方答案(4)以上皆非(規定為300V以下)。"}, {"id": "113-1-33", "exam": "113-1", "num": 33, "cat": "接地與保護裝置", "q": "漏電斷路器不得裝設於下列何種設備上？", "opts": ["臨時用電", "慶典牌樓", "沉水式用電器具", "消防加壓馬達"], "ans": 4, "exp": "消防加壓馬達不得裝漏電斷路器(避免火災時斷電)。"}, {"id": "113-1-34", "exam": "113-1", "num": 34, "cat": "接地與保護裝置", "q": "新裝設之無熔線開關 ON 後立即跳脫，其可能原因之一為下列何種現象？", "opts": ["逆相", "欠相", "過載", "以上皆非"], "ans": 4, "exp": "立即跳脫多為短路，選項未列 → 以上皆非。"}, {"id": "113-1-35", "exam": "113-1", "num": 35, "cat": "電動機與控制", "q": "三相感應電動機如將三相電源任意更換二條，則？", "opts": ["速度增加", "轉矩增加", "速度減慢", "以上皆非"], "ans": 4, "exp": "更換二條會反轉，選項未列 → 以上皆非。"}, {"id": "113-1-36", "exam": "113-1", "num": 36, "cat": "電動機與控制", "q": "電動機控制電路中裝置積熱電驛的主要功能是為保護？", "opts": ["過電壓", "短路", "欠相", "過載"], "ans": 4, "exp": "積熱電驛(TH-RY)作過載保護。"}, {"id": "113-1-37", "exam": "113-1", "num": 37, "cat": "交流與三相電路", "q": "單相三線式供電系統中，A相電流30安、B相電流25安、功率因數相同時，中性線電流為多少安？", "opts": ["0", "55", "5.5", "5"], "ans": 4, "exp": "中性線電流=30-25=5A。"}, {"id": "113-1-38", "exam": "113-1", "num": 38, "cat": "電工儀表", "q": "比流器變流比為 300/5A，若一次側電流為 180A，其二次側電流為多少A？", "opts": ["30", "0.3", "0.6", "以上皆非"], "ans": 4, "exp": "180×5/300=3A，選項未列 → 以上皆非。"}, {"id": "113-1-39", "exam": "113-1", "num": 39, "cat": "用電法規", "q": "依電器承裝業管理規則，承裝業僱用人員解僱或離職時，應於幾個月內補足人數並申請變更登記？", "opts": ["一", "二", "沒規定", "以上皆非"], "ans": 4, "exp": "官方答案(4)以上皆非。"}, {"id": "113-1-40", "exam": "113-1", "num": 40, "cat": "電機材料與單位", "q": "電能的單位係以下列何者表示？", "opts": ["A", "W", "C", "J"], "ans": 4, "exp": "電能單位為焦耳(J)。"}, {"id": "114-1-01", "exam": "114-1", "num": 1, "cat": "電容與靜電", "q": "有一電容器其電容為 8.5μF，欲使其兩端電壓減低 40V，應移去電荷若干(μC)？", "opts": ["4.75", "0.2125", "4.85", "340"], "ans": 4, "exp": "ΔQ=C×ΔV=8.5×40=340μC。"}, {"id": "114-1-02", "exam": "114-1", "num": 2, "cat": "電容與靜電", "q": "3 個電容 C1:C2:C3=2:3:4，並聯後接於一電壓源，各電容儲存之能量比為？", "opts": ["2:3:4", "6:4:3", "4:3:2", "1:1:1"], "ans": 1, "exp": "並聯電壓相同，W=½CV²∝C → 2:3:4。"}, {"id": "114-1-03", "exam": "114-1", "num": 3, "cat": "電容與靜電", "q": "3 個電容 C1:C2:C3=2:3:6 串聯後接於一電壓源，各電容儲存之電荷比 Q1:Q2:Q3 為？", "opts": ["2:3:6", "6:3:2", "3:2:1", "1:1:1"], "ans": 4, "exp": "串聯電荷相同 → 1:1:1。"}, {"id": "114-1-04", "exam": "114-1", "num": 4, "cat": "電容與靜電", "q": "3 個電容 C1:C2:C3=2:3:6 串聯後接於一電壓源，各電容儲存之能量比 W1:W2:W3 為？", "opts": ["2:3:6", "6:3:2", "3:2:1", "1:1:1"], "ans": 3, "exp": "串聯Q相同，W=Q²/2C∝1/C → 1/2:1/3:1/6=3:2:1。"}, {"id": "114-1-05", "exam": "114-1", "num": 5, "cat": "電容與靜電", "q": "將 100μF 電容器接於 25V 充電穩定後，與另一不帶電荷之 25μF 電容器並聯，則並聯穩定後 100μF 電容器兩端電位差為？", "opts": ["20", "22.5", "10", "15"], "ans": 1, "exp": "Q=100×25=2500μC；並聯後 C=125μF；V=2500/125=20V。"}, {"id": "114-1-06", "exam": "114-1", "num": 6, "cat": "電容與靜電", "q": "A、B 兩電容器充以相等電荷後，測得 A 的電壓為 B 電壓的 4 倍，則 A 的電容量為 B 的幾倍？", "opts": ["16", "1/16", "4", "1/4"], "ans": 4, "exp": "Q=CV 相同，C∝1/V；VA=4VB → CA=CB/4。"}, {"id": "114-1-07", "exam": "114-1", "num": 7, "cat": "電容與靜電", "q": "有一 40μF 電容器於 0.02 秒內由 0V 充電至 250V，則其平均充電電流為(A)？", "opts": ["0.5", "1", "5", "0.1"], "ans": 1, "exp": "I=C×ΔV/Δt=40μ×250/0.02=0.5A。"}, {"id": "114-1-08", "exam": "114-1", "num": 8, "cat": "電機材料與單位", "q": "電容抗 Xc 之單位為？", "opts": ["享利", "韋伯", "法拉", "歐姆"], "ans": 4, "exp": "電抗單位為歐姆(Ω)。"}, {"id": "114-1-09", "exam": "114-1", "num": 9, "cat": "電容與靜電", "q": "有一電容其上標示 104，則其電容量為？", "opts": ["10⁴ pF", "10 pF", "1μF", "0.1μF"], "ans": 4, "exp": "104 = 10×10⁴ pF = 10⁵ pF = 0.1μF。"}, {"id": "114-1-10", "exam": "114-1", "num": 10, "cat": "電容與靜電", "q": "電容量的大小與其兩極板之間介質的介電係數關係為？", "opts": ["成正比", "成反比", "成平方正比", "成平方反比"], "ans": 1, "exp": "C=εA/d，C∝ε 成正比。"}, {"id": "114-1-11", "exam": "114-1", "num": 11, "cat": "電容與靜電", "q": "電容器串聯連接，其目的在使各電容器分擔？", "opts": ["電流", "電壓", "電阻", "電抗"], "ans": 2, "exp": "串聯分壓。"}, {"id": "114-1-12", "exam": "114-1", "num": 12, "cat": "電容與靜電", "q": "有一厚 2mm 之介質可耐最高電壓 100kV，則該介質之介質強度為(V/m)？", "opts": ["50×10⁶", "50×10⁵", "50×10²", "50"], "ans": 1, "exp": "100kV/2mm=100000/0.002=5×10⁷=50×10⁶ V/m。"}, {"id": "114-1-13", "exam": "114-1", "num": 13, "cat": "電容與靜電", "q": "有關電位之敘述，何者為誤？", "opts": ["具有大小", "具有方向", "距電場無窮遠處之電位為零", "愈靠近正電荷處電位愈高"], "ans": 2, "exp": "電位是純量，無方向。"}, {"id": "114-1-14", "exam": "114-1", "num": 14, "cat": "電容與靜電", "q": "1 個 10μF 電容器被充電至 20V，則儲存能量為(mJ)？", "opts": ["1", "2", "3", "4"], "ans": 2, "exp": "W=½CV²=½×10μ×20²=2mJ。"}, {"id": "114-1-15", "exam": "114-1", "num": 15, "cat": "電容與靜電", "q": "有 2μF、4μF、8μF、16μF 四個電容器串聯，則總電容量為(μF)？", "opts": ["16/15", "15/16", "16/17", "17/16"], "ans": 1, "exp": "1/C=1/2+1/4+1/8+1/16=15/16 → C=16/15。"}, {"id": "114-1-16", "exam": "114-1", "num": 16, "cat": "電阻與直流電路", "q": "4 只 4Ω 電阻作並聯，其總電阻為(Ω)？", "opts": ["1", "4", "8", "16"], "ans": 1, "exp": "4Ω/4=1Ω。"}, {"id": "114-1-17", "exam": "114-1", "num": 17, "cat": "接地與保護裝置", "q": "三相三線式非接地系統供電地區，用戶變壓器之低壓電源系統接地應採用何種接地？", "opts": ["特種", "第一種", "第二種", "第三種"], "ans": 3, "exp": "低壓電源系統接地採第二種接地。"}, {"id": "114-1-18", "exam": "114-1", "num": 18, "cat": "電動機與控制", "q": "感應電動機之起動轉矩與下列何者成正比？", "opts": ["電壓平方", "電流", "電壓", "功率因數"], "ans": 1, "exp": "起動轉矩∝電壓平方。"}, {"id": "114-1-19", "exam": "114-1", "num": 19, "cat": "電動機與控制", "q": "若直流分激電動機之兩條電源線對調，電動機將會？", "opts": ["逆轉", "轉向不變", "轉速增高", "轉速減少"], "ans": 2, "exp": "電源對調時磁場與電樞電流同時反向 → 轉向不變。"}, {"id": "114-1-20", "exam": "114-1", "num": 20, "cat": "電阻與直流電路", "q": "100W、110V 燈泡兩個串聯使用，仍接於 110V 電源，則每個燈泡消耗功率為(W)？", "opts": ["200", "100", "50", "25"], "ans": 4, "exp": "每燈R=121Ω，串聯後電壓各半55V，P=55²/121=25W。"}, {"id": "114-1-21", "exam": "114-1", "num": 21, "cat": "電工儀表", "q": "理想電壓表的內阻應為？", "opts": ["0", "10k", "110k", "∞"], "ans": 4, "exp": "理想電壓表內阻無限大。"}, {"id": "114-1-22", "exam": "114-1", "num": 22, "cat": "電阻與直流電路", "q": "4 只 4Ω 電阻作串聯，其總電阻為(Ω)？", "opts": ["1", "4", "8", "16"], "ans": 4, "exp": "4×4=16Ω。"}, {"id": "114-1-23", "exam": "114-1", "num": 23, "cat": "導線與絞線", "q": "有一絞線之總股數(N)為 37，則其重疊層數(n)為？", "opts": ["3", "4", "5", "6"], "ans": 1, "exp": "1+6+12+18=37，共 3 層。"}, {"id": "114-1-24", "exam": "114-1", "num": 24, "cat": "導線與絞線", "q": "屋內配線所使用之絞線至少由幾股實心線組成？", "opts": ["5", "7", "9", "8"], "ans": 2, "exp": "絞線至少 7 股。"}, {"id": "114-1-25", "exam": "114-1", "num": 25, "cat": "電機材料與單位", "q": "銅是一種？", "opts": ["半導體材料", "絕緣材料", "非磁性材料", "磁性材料"], "ans": 3, "exp": "銅為非磁性良導體。"}, {"id": "114-1-26", "exam": "114-1", "num": 26, "cat": "導線與絞線", "q": "低壓絕緣電線可承受電壓為多少伏？", "opts": ["150", "240", "400", "600"], "ans": 4, "exp": "低壓絕緣電線額定 600V。"}, {"id": "114-1-27", "exam": "114-1", "num": 27, "cat": "電工儀表", "q": "仟乏計係測量負載之？", "opts": ["視在功率", "無效功率", "功率因數", "有效功率"], "ans": 2, "exp": "仟乏計(kVAR計)測無效功率。"}, {"id": "114-1-28", "exam": "114-1", "num": 28, "cat": "電工儀表", "q": "指針型功率因數表之中央標度，其功率因數為？", "opts": ["超前0.5", "滯後0.5", "1", "0"], "ans": 3, "exp": "中央刻度為功率因數 1。"}, {"id": "114-1-29", "exam": "114-1", "num": 29, "cat": "導線與絞線", "q": "A.C.S.R. 為？", "opts": ["鋼心銅線", "鋼心鋁線", "鐵心銅線", "鐵心銅線"], "ans": 2, "exp": "ACSR=鋼心鋁絞線(Aluminum Conductor Steel Reinforced)。"}, {"id": "114-1-30", "exam": "114-1", "num": 30, "cat": "電工儀表", "q": "有 3 個電流表規格為 10A/0.16Ω、25A/0.08Ω、20A/0.1Ω，並聯後可量測的最大電流為(A)？", "opts": ["31.25", "36", "46", "55"], "ans": 3, "exp": "以最小滿刻度壓降1.6V為限：10+1.6/0.08+1.6/0.1=10+20+16=46A。"}, {"id": "114-1-31", "exam": "114-1", "num": 31, "cat": "電阻與直流電路", "q": "求戴維寧等效阻抗時，必須將電路中電源如何處置？", "opts": ["全部電源短路", "全部電源開路", "電壓源短路，電流源開路", "電壓源開路，電流源短路"], "ans": 3, "exp": "求等效阻抗：電壓源短路、電流源開路。"}, {"id": "114-1-32", "exam": "114-1", "num": 32, "cat": "交流與三相電路", "q": "三相四線式線路中，相電壓為線電壓的幾倍？", "opts": ["1/2", "2", "1/√2", "1/√3"], "ans": 4, "exp": "三相四線 Vph=VL/√3。"}, {"id": "114-1-33", "exam": "114-1", "num": 33, "cat": "接地與保護裝置", "q": "三相四線式之中性線係屬？", "opts": ["被接地導線", "接地導線", "非接地導線", "非識別導線"], "ans": 1, "exp": "中性線為被接地導線。"}, {"id": "114-1-34", "exam": "114-1", "num": 34, "cat": "交流與三相電路", "q": "平衡四相五線制，其每相相位差為？", "opts": ["60°", "72°", "90°", "120°"], "ans": 3, "exp": "四相：360°/4=90°。"}, {"id": "114-1-35", "exam": "114-1", "num": 35, "cat": "交流與三相電路", "q": "單相三線式供電系統中，A相電流30安培、B相電流25安培，則中性線電流為多少安培？", "opts": ["5", "25", "30", "55"], "ans": 1, "exp": "中性線電流=30-25=5A。"}, {"id": "114-1-36", "exam": "114-1", "num": 36, "cat": "交流與三相電路", "q": "三相電動機做 Y 接線時輸出功率為 P，今改為 Δ 接線，其輸出功率為？", "opts": ["P", "P/3", "√3P", "3P"], "ans": 4, "exp": "同電源下 Δ 功率為 Y 的 3 倍 → 3P。"}, {"id": "114-1-37", "exam": "114-1", "num": 37, "cat": "交流與三相電路", "q": "三相交流 220V 線路接上 8.6kW、功率因數 80% 的三相平衡負載，此時線路電流約為(A)？", "opts": ["16.5", "28.2", "49", "87"], "ans": 2, "exp": "I=P/(√3×VL×pf)=8600/(1.732×220×0.8)≈28.2A。"}, {"id": "114-1-38", "exam": "114-1", "num": 38, "cat": "功率與功率因數", "q": "10kVA/220V 三相電動機，功率因數 0.5，則平均(有效)功率為(kW)？", "opts": ["5", "8", "7", "10"], "ans": 1, "exp": "P=S×pf=10×0.5=5kW。"}, {"id": "114-1-39", "exam": "114-1", "num": 39, "cat": "交流與三相電路", "q": "三相電動機做 Y 連接接於 220V 三相電源，則電動機內每一相繞組之電壓為(V)？", "opts": ["220", "220/√3", "110", "110√3"], "ans": 2, "exp": "Y接每相繞組電壓=線電壓/√3=220/√3。"}, {"id": "114-1-40", "exam": "114-1", "num": 40, "cat": "功率與功率因數", "q": "平衡三相之總功率等於任何一相功率之幾倍？", "opts": ["2/3", "√3", "3", "2"], "ans": 3, "exp": "總功率=3×每相功率。"}]};
+const QS = DATA.questions, CATS = DATA.cats;
+const QMAP = Object.fromEntries(QS.map(q=>[q.id,q]));
+const KEY = "wiring5gu-v1";
+const K = "①②③④";
+
+// ---- 進度儲存（localStorage）----
+let ST = load();
+function load(){ try{return JSON.parse(localStorage.getItem(KEY))||{s:{},day:{}}}catch(e){return {s:{},day:{}}} }
+function save(){ localStorage.setItem(KEY, JSON.stringify(ST)) }
+function rec(id){ return ST.s[id] || (ST.s[id]={box:0,seen:0,right:0,wrong:0,wrongEver:0}) }
+function todayKey(){ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate() }
+
+// box: 0=未作答/待加強  1..5=熟練度   精熟=box>=4
+function grade(id, correct){
+  const r=rec(id); r.seen++;
+  if(correct){ r.right++; r.box=Math.min(5,(r.box||0)+1) }
+  else { r.wrong++; r.wrongEver++; r.box=Math.max(1, (r.box||0)-2) }
+  const tk=todayKey(); ST.day[tk]=(ST.day[tk]||0)+1;
+  save();
+}
+function mastered(id){ return (ST.s[id]?.box||0)>=4 }
+function isWrongBook(id){ const r=ST.s[id]; return r && r.wrongEver>0 && r.box<4 }
+function seenCount(){ return Object.keys(ST.s).length }
+function masteredCount(){ return QS.filter(q=>mastered(q.id)).length }
+function wrongBookList(){ return QS.filter(q=>isWrongBook(q.id)) }
+function todayDone(){ return ST.day[todayKey()]||0 }
+
+// ---- 出題排序：間隔重複（Leitner）----
+// 未作答與低 box 先出、曾錯優先；同 box 內隨機
+function orderSR(list){
+  return list.map(q=>{
+    const r=ST.s[q.id]; const box=r?r.box:0;
+    const w=r?r.wrongEver:0;
+    const score = box*10 - Math.min(w,3)*3 + Math.random()*4; // 越小越先出
+    return {q,score};
+  }).sort((a,b)=>a.score-b.score).map(o=>o.q);
+}
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a }
+
+// ---- 畫面狀態 ----
+let session=null; // {list, i, mode, correct, answered, wrongThisRun[]}
+const app=document.getElementById("app");
+
+function home(){
+  session=null;
+  const total=QS.length, mst=masteredCount(), wb=wrongBookList().length, td=todayDone();
+  const catStats=CATS.map(c=>{
+    const qs=QS.filter(q=>q.cat===c); const m=qs.filter(q=>mastered(q.id)).length;
+    return {c,total:qs.length,m,pct:qs.length?Math.round(m/qs.length*100):0};
+  }).filter(x=>x.total>0);
+  app.innerHTML=`
+  <h1>室內配線(五股) 甄試刷題</h1>
+  <div class="sub">112 / 113 / 114 甄試考古題 · 共 ${total} 題 · 間隔重複 + 錯題本</div>
+  <div class="card">
+   <div class="row">
+    <div class="stat"><div class="n br">${total}</div><div class="l">題庫總數</div></div>
+    <div class="stat"><div class="n ok">${mst}</div><div class="l">已精熟</div></div>
+    <div class="stat"><div class="n bad">${wb}</div><div class="l">錯題待加強</div></div>
+    <div class="stat"><div class="n">${td}</div><div class="l">今日已練</div></div>
+   </div>
+   <div class="bar" style="margin-top:14px"><i style="width:${Math.round(mst/total*100)}%"></i></div>
+   <div class="tag" style="margin-top:6px">整體精熟度 ${Math.round(mst/total*100)}%（精熟＝連續答對，box≥4）</div>
+  </div>
+  <div class="btns">
+   <button onclick="start('sr', QS, '全部練習')">▶ 開始練習（智慧排序，錯的先出）</button>
+   <button class="ghost" onclick="start('wrong', wrongBookList(), '錯題本')" ${wb?'':'disabled style=opacity:.4'}>🔁 只練錯題本（${wb}）</button>
+   <button class="ghost" onclick="startExam()">📝 模擬考（隨機 40 題 · 計分）</button>
+  </div>
+  <div class="sec-t">依工作項目練習</div>
+  <div class="grid">
+   ${catStats.map(x=>`<div class="cat" onclick="start('sr', QS.filter(q=>q.cat==='${x.c}'), '${x.c}')">
+     <div class="ct"><span>${x.c}</span><span class="num">${x.m}/${x.total}</span></div>
+     <div class="bar"><i style="width:${x.pct}%"></i></div></div>`).join("")}
+  </div>
+  <div class="sec-t">依年度練習</div>
+  <div class="grid">
+   ${["112-1","113-1","114-1"].map(e=>{const qs=QS.filter(q=>q.exam===e);const m=qs.filter(q=>mastered(q.id)).length;
+     return `<div class="cat" onclick="start('exam', QS.filter(q=>q.exam==='${e}'), '${e} 整卷')">
+     <div class="ct"><span>${e} 整卷</span><span class="num">${m}/${qs.length}</span></div>
+     <div class="bar"><i style="width:${Math.round(m/qs.length*100)}%"></i></div></div>`}).join("")}
+  </div>
+  <div class="link" onclick="resetAll()">重置所有進度</div>`;
+}
+
+function start(mode, list, title){
+  if(!list.length){ return }
+  let ordered = mode==='exam' ? list.slice().sort((a,b)=>a.num-b.num)
+              : mode==='wrong' ? orderSR(list)
+              : orderSR(list);
+  session={list:ordered, i:0, mode, title, correct:0, wrongThisRun:[], answered:false, timed:false};
+  quiz();
+}
+function startExam(){
+  const list=shuffle(QS).slice(0,40);
+  session={list, i:0, mode:'sim', title:'模擬考', correct:0, wrongThisRun:[], answered:false, timed:true, start:Date.now()};
+  quiz();
+}
+
+function quiz(){
+  const s=session, q=s.list[s.i], n=s.list.length;
+  const r=ST.s[q.id];
+  const boxTag = r&&r.box>=4 ? '精熟' : r&&r.wrongEver>0 ? '曾錯' : r?'學習中':'新題';
+  s.answered=false;
+  app.innerHTML=`
+  <div class="qtop">
+    <span onclick="home()" style="cursor:pointer">‹ 首頁</span>
+    <span>${s.title} · ${s.i+1}/${n}${s.mode==='sim'?'  ⏱ 模擬考':''}</span>
+    <span>✅ ${s.correct}</span>
+  </div>
+  <div class="pbar"><i style="width:${Math.round(s.i/n*100)}%"></i></div>
+  <div class="card">
+    <div class="meta"><span class="badge">${q.cat}</span> &nbsp;${q.exam}　第${q.num}題　<span class="tag">· ${boxTag}</span></div>
+    <div class="q">${esc(q.q)}</div>
+    <div id="opts">
+      ${q.opts.map((o,i)=>`<div class="opt" data-i="${i+1}" onclick="answer(${i+1})">
+        <div class="k">${K[i]}</div><div>${esc(o)}</div></div>`).join("")}
+    </div>
+    <div class="fb" id="fb"></div>
+    <div class="exp" id="exp"></div>
+    <button id="next" class="hide" onclick="next()">下一題 ›</button>
+  </div>
+  <div class="tag center">鍵盤 <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> 作答 · <kbd>Enter</kbd> 下一題</div>`;
+}
+
+function answer(pick){
+  const s=session; if(s.answered) return; s.answered=true;
+  const q=s.list[s.i], correct=(pick===q.ans);
+  if(s.mode!=='exam'||true) grade(q.id, correct); // 一律記錄進度
+  if(correct) s.correct++; else s.wrongThisRun.push(q);
+  document.querySelectorAll(".opt").forEach(el=>{
+    const i=+el.dataset.i; el.classList.add("dis"); el.onclick=null;
+    if(i===q.ans) el.classList.add("correct");
+    else if(i===pick) el.classList.add("wrong");
+  });
+  const fb=document.getElementById("fb");
+  fb.className="fb show "+(correct?"ok":"bad");
+  fb.textContent = correct?"✅ 答對！":`❌ 答錯　正解：${K[q.ans-1]} ${q.opts[q.ans-1]}`;
+  if(q.exp){ const e=document.getElementById("exp"); e.className="exp show"; e.innerHTML="💡 "+esc(q.exp) }
+  document.getElementById("next").classList.remove("hide");
+  document.getElementById("next").textContent = s.i+1>=s.list.length ? "看結果 ›" : "下一題 ›";
+}
+
+function next(){
+  const s=session; s.i++;
+  if(s.i>=s.list.length) return finish();
+  quiz();
+}
+
+function finish(){
+  const s=session;
+  if(s.mode==='sim'){
+    const score=Math.round(s.correct/s.list.length*100);
+    const sec=Math.round((Date.now()-s.start)/1000);
+    const pass=score>=90;
+    app.innerHTML=`
+     <div class="qtop"><span onclick="home()" style="cursor:pointer">‹ 首頁</span><span>模擬考結果</span><span></span></div>
+     <div class="card center">
+       <div class="big ${pass?'':''}" style="color:${pass?'var(--ok)':score>=60?'var(--warn)':'var(--bad)'}">${score}<span style="font-size:20px">分</span></div>
+       <div class="tag">答對 ${s.correct}/${s.list.length} · 用時 ${Math.floor(sec/60)}分${sec%60}秒</div>
+       <div style="margin-top:10px;font-weight:700;color:${pass?'var(--ok)':'var(--warn)'}">${pass?'🎉 達標！90 分以上':'再加強錯題，目標 90 分'}</div>
+     </div>
+     ${s.wrongThisRun.length?`<div class="sec-t">這次答錯 ${s.wrongThisRun.length} 題</div>
+      <div class="card wlist">${s.wrongThisRun.map(q=>`<div class="wq">${esc(q.q)}
+        <div class="qa">正解：${K[q.ans-1]} ${esc(q.opts[q.ans-1])}${q.exp?'　'+esc(q.exp):''}</div></div>`).join("")}</div>`:''}
+     <div class="btns">
+       ${s.wrongThisRun.length?`<button onclick="start('wrong', session.wrongThisRun.slice(), '本次錯題')">🔁 立即重練這次錯的</button>`:''}
+       <button class="ghost" onclick="startExam()">再考一次</button>
+       <button class="ghost" onclick="home()">回首頁</button>
+     </div>`;
+  } else {
+    const pct=s.list.length?Math.round(s.correct/s.list.length*100):0;
+    app.innerHTML=`
+     <div class="card center">
+       <div class="big" style="color:var(--ok)">${s.correct}/${s.list.length}</div>
+       <div class="tag">本輪正確率 ${pct}% · ${s.title}</div>
+       ${s.wrongThisRun.length?`<div style="margin-top:8px;color:var(--warn)">${s.wrongThisRun.length} 題已加入錯題本</div>`:'<div style="margin-top:8px;color:var(--ok)">全對！👏</div>'}
+     </div>
+     <div class="btns">
+       ${s.wrongThisRun.length?`<button onclick="start('wrong', session.wrongThisRun.slice(), '本輪錯題')">🔁 重練本輪錯題</button>`:''}
+       <button class="ghost" onclick="home()">回首頁</button>
+     </div>`;
+  }
+}
+
+function resetAll(){ if(confirm("確定要清除所有作答進度與錯題本？")){ ST={s:{},day:{}}; save(); home() } }
+function esc(s){ return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])) }
+
+// 鍵盤
+document.addEventListener("keydown",e=>{
+  if(!session) return;
+  if(!session.answered && /^[1-4]$/.test(e.key)){ answer(+e.key); e.preventDefault() }
+  else if(session.answered && (e.key==="Enter"||e.key===" ")){ next(); e.preventDefault() }
+});
+
+home();
+</script>
+</body>
+</html>
