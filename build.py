@@ -168,6 +168,7 @@ HOT_IDS = set(i for _, ids in HOT_CONCEPTS for i in ids)
 
 def compute_weights(recs):
     from collections import Counter, defaultdict
+    recs = [r for r in recs if r.get("site", "五股") == "五股"]  # 比重分析只針對你要考的五股
     per = defaultdict(lambda: Counter())
     tot = Counter()
     for r in recs:
@@ -184,6 +185,20 @@ def compute_weights(recs):
             "byExam": {e: per[c][e] for e in ["112-1", "113-1", "114-1"]},
         }
     return w
+
+def load_extra():
+    """其他場次（花蓮/宜蘭…）已整理好的完整題目記錄；無檔案則回空。"""
+    p = os.path.join(BASE, "data", "extra_questions.json")
+    if not os.path.exists(p):
+        return []
+    with open(p, encoding="utf-8") as f:
+        recs = json.load(f)
+    for r in recs:
+        assert r.get("site") and r["site"] != "五股", r.get("id")
+        assert len(r["opts"]) == 4 and 1 <= r["ans"] <= 4, r.get("id")
+        r.setdefault("hot", False)
+    print("  載入其他場次", len(recs), "題")
+    return recs
 
 def load_rationales():
     import glob
@@ -208,7 +223,7 @@ def build_records():
         assert cat in CATS, (exam, num, cat)
         rid = f"{exam}-{num:02d}"
         rec = {
-            "id": rid,
+            "id": rid, "site": "五股",
             "exam": exam, "num": num, "cat": cat,
             "q": q, "opts": opts, "ans": ans, "exp": exp,
             "hot": rid in HOT_IDS,
@@ -216,6 +231,7 @@ def build_records():
         if rid in why_map:
             rec["why"] = why_map[rid]
         recs.append(rec)
+    recs += load_extra()   # 花蓮 / 宜蘭 等其他場次（各自獨立、不併入五股統計）
     # 檢查每份考卷 40 題
     from collections import Counter
     c = Counter(r["exam"] for r in recs)

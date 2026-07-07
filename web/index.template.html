@@ -82,7 +82,7 @@ kbd{background:#0c1120;border:1px solid var(--line);border-radius:5px;padding:1p
 .navbtns{display:flex;gap:10px;margin-top:6px}
 .navbtns button{flex:1}
 .lbtn{width:76px;height:76px;border-radius:50%;font-size:30px;margin:8px auto;display:grid;place-items:center}
-.seg{transition:.15s;opacity:.4}.seg.cur{opacity:1;color:var(--brand2);font-weight:700}
+.seg{transition:.15s;padding:4px 8px;border-radius:8px}.seg.cur{background:#25324e;color:#fff}
 .ctrl{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:8px}
 .pill{background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:13px;cursor:pointer}
 .pill.on{background:var(--brand);color:#fff;border-color:var(--brand)}
@@ -307,8 +307,8 @@ function explainView(){
 function explainNav(d){ const s=session; const ni=s.i+d;
   if(ni<0) return; if(ni>=s.list.length) return home(); s.i=ni; explainView(); }
 
-// ─────────── 聽力模式（語音朗讀，自動連播）───────────
-let audio={on:false, i:0, list:[], rate:0.95, readExp:true, loop:false, title:''};
+// ─────────── 聽力模式（語音朗讀：只唸 題目→正解→詳解）───────────
+let audio={on:false, i:0, list:[], rate:0.95, readExp:true, loop:false, title:'', gen:0};
 function ttsClean(s){ return String(s)
   .replace(/√/g,'根號').replace(/Ω/g,'歐姆').replace(/μF/g,'微法').replace(/μ/g,'微')
   .replace(/℃/g,'度C').replace(/≥/g,'大於等於').replace(/≤/g,'小於等於').replace(/∞/g,'無限大')
@@ -316,7 +316,8 @@ function ttsClean(s){ return String(s)
 function startListen(list, title){
   if(!('speechSynthesis' in window)){ alert('此瀏覽器不支援語音朗讀，建議用 Chrome / Safari。'); return; }
   if(!list.length) return;
-  audio={on:false, i:0, list:list.slice(), rate:audio.rate, readExp:audio.readExp, loop:audio.loop, title};
+  stopSpeak();
+  audio={on:false, i:0, list:list.slice(), rate:audio.rate, readExp:audio.readExp, loop:audio.loop, title, gen:audio.gen};
   listenView();
 }
 function listenView(){
@@ -326,14 +327,12 @@ function listenView(){
   <div class="pbar"><i style="width:${Math.round((a.i+1)/n*100)}%"></i></div>
   <div class="card">
     <div class="meta">${q.hot?'🔥 ':''}${q.cat}　${q.exam} 第${q.num}題</div>
-    <div id="segs">
-      <div class="seg s0 q">${esc(q.q)}</div>
-      ${q.opts.map((o,i)=>`<div class="seg s${i+1}" style="font-size:15px;margin:3px 0">${K[i]} ${esc(o)}</div>`).join("")}
-      <div class="seg s5" style="margin-top:8px;color:var(--ok);font-weight:700">正解：${K[q.ans-1]} ${esc(q.opts[q.ans-1])}</div>
-      ${q.exp?`<div class="seg s6" style="font-size:14px;color:var(--dim);margin-top:4px">💡 ${esc(q.exp)}</div>`:''}
-    </div>
+    <div id="seg-q" class="seg q" style="font-size:17px">${esc(q.q)}</div>
+    <div style="margin:6px 0">${q.opts.map((o,i)=>`<div style="font-size:14px;margin:2px 0;color:${i===q.ans-1?'var(--ok)':'var(--dim)'}">${K[i]} ${esc(o)}</div>`).join("")}</div>
+    <div id="seg-ans" class="seg" style="color:var(--ok);font-weight:700">正解：${K[q.ans-1]} ${esc(q.opts[q.ans-1])}</div>
+    ${q.exp?`<div id="seg-exp" class="seg" style="font-size:14px;color:#cdd6ea;margin-top:4px">💡 ${esc(q.exp)}</div>`:''}
     <div class="lbtn" style="background:${a.on?'var(--warn)':'var(--brand)'}" onclick="toggleListen()">${a.on?'⏸':'▶'}</div>
-    <div class="center tag">${a.on?'朗讀中…（鎖屏會中斷，建議保持螢幕開啟）':'按播放開始自動連播'}</div>
+    <div class="center tag">${a.on?'朗讀中…（只唸題目、正解、詳解；鎖屏會中斷，建議保持螢幕開啟）':'按播放：自動連播「題目 → 正解 → 詳解」'}</div>
     <div class="ctrl">
       <span class="pill" onclick="listenStep(-1)">⏮ 上題</span>
       <span class="pill" onclick="listenStep(1)">下題 ⏭</span>
@@ -347,52 +346,52 @@ function listenView(){
     </div>
   </div>
   <div class="tag center">鍵盤 <kbd>空白</kbd> 播放/暫停 · <kbd>←</kbd><kbd>→</kbd> 換題</div>`;
-  highlightSeg(-1);
+  hlSeg(null);
 }
-function highlightSeg(k){ document.querySelectorAll('#segs .seg').forEach((el,idx)=>el.classList.toggle('cur',idx===k)); }
-function speakSegs(segs, done){
+function hlSeg(id){ ['seg-q','seg-ans','seg-exp'].forEach(x=>{const el=document.getElementById(x); if(el) el.classList.toggle('cur', x===id);}); }
+function segsFor(q){
+  const s=[{t:`第 ${audio.i+1} 題。${ttsClean(q.q)}`, hi:'seg-q', gap:500}];
+  s.push({t:`正確答案，選項${CN[q.ans-1]}，${ttsClean(q.opts[q.ans-1])}`, hi:'seg-ans', gap:400});
+  if(audio.readExp && q.exp) s.push({t:`解說。${ttsClean(q.exp)}`, hi:'seg-exp', gap:650});
+  return s;
+}
+// gen 世代守衛：cancel() 會觸發舊 utterance 的 onend，用 gen 比對可讓過期回呼失效，避免兩條朗讀鏈同時前進造成「亂跳」
+function speakChain(segs, gen, done){
   let k=0;
-  function go(){
-    if(!audio.on) return;
+  (function go(){
+    if(!audio.on || gen!==audio.gen) return;
     if(k>=segs.length){ done&&done(); return; }
-    highlightSeg(segs[k].hi);
+    hlSeg(segs[k].hi);
     const u=new SpeechSynthesisUtterance(segs[k].t); u.lang='zh-TW'; u.rate=audio.rate;
-    const gap=segs[k].gap||120;
-    u.onend=()=>{ k++; setTimeout(go, gap); };
-    u.onerror=()=>{ k++; setTimeout(go, gap); };
-    speechSynthesis.speak(u);
-  }
-  go();
+    const gap=segs[k].gap||200;
+    u.onend=()=>{ if(gen!==audio.gen) return; k++; setTimeout(go, gap); };
+    u.onerror=()=>{ if(gen!==audio.gen) return; k++; setTimeout(go, gap); };
+    try{ speechSynthesis.speak(u); }catch(e){ if(gen===audio.gen){ k++; setTimeout(go, gap); } }
+  })();
 }
-function playCurrent(){
-  const q=audio.list[audio.i];
-  const segs=[
-    {t:`第 ${audio.i+1} 題。${ttsClean(q.q)}`, hi:0, gap:250},
-    {t:`選項一，${ttsClean(q.opts[0])}`, hi:1, gap:120},
-    {t:`選項二，${ttsClean(q.opts[1])}`, hi:2, gap:120},
-    {t:`選項三，${ttsClean(q.opts[2])}`, hi:3, gap:120},
-    {t:`選項四，${ttsClean(q.opts[3])}`, hi:4, gap:1000},
-    {t:`正確答案是，選項${CN[q.ans-1]}，${ttsClean(q.opts[q.ans-1])}`, hi:5, gap:300},
-  ];
-  if(audio.readExp && q.exp) segs.push({t:`說明，${ttsClean(q.exp)}`, hi:6, gap:450});
-  speakSegs(segs, ()=>{
-    if(!audio.on) return;
-    audio.i++;
-    if(audio.i>=audio.list.length){ if(audio.loop){ audio.i=0 } else { audio.on=false; listenView(); return } }
-    listenView(); playCurrent();
+function playFrom(){
+  if(!audio.on) return;
+  const gen=audio.gen;
+  listenView();
+  speakChain(segsFor(audio.list[audio.i]), gen, ()=>{
+    if(!audio.on || gen!==audio.gen) return;
+    if(audio.i+1>=audio.list.length){
+      if(audio.loop){ audio.i=0; } else { audio.on=false; listenView(); return; }
+    } else { audio.i++; }
+    playFrom();
   });
 }
+function stopSpeak(){ audio.gen++; try{ speechSynthesis.cancel(); }catch(e){} }
 function toggleListen(){
-  if(audio.on){ audio.on=false; speechSynthesis.cancel(); listenView(); }
-  else { audio.on=true; speechSynthesis.cancel(); listenView(); playCurrent(); }
+  if(audio.on){ audio.on=false; stopSpeak(); listenView(); }
+  else { stopSpeak(); audio.on=true; playFrom(); }
 }
 function listenStep(d){
-  const was=audio.on; speechSynthesis.cancel();
-  audio.i=Math.max(0,Math.min(audio.list.length-1,audio.i+d));
-  listenView();
-  if(was){ audio.on=true; playCurrent(); }
+  const was=audio.on; stopSpeak(); audio.on=false;
+  audio.i=Math.max(0, Math.min(audio.list.length-1, audio.i+d));
+  if(was){ audio.on=true; playFrom(); } else listenView();
 }
-function stopListen(){ if(window.speechSynthesis){ audio.on=false; speechSynthesis.cancel(); } }
+function stopListen(){ if(window.speechSynthesis){ audio.on=false; stopSpeak(); } }
 
 function resetAll(){ if(confirm("確定要清除所有作答進度與錯題本？")){ ST={s:{},day:{}}; save(); home() } }
 
