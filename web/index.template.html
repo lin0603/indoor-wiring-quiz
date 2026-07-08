@@ -94,6 +94,7 @@ select{background:var(--card2);color:var(--tx);border:1px solid var(--line);bord
 .fkid{font-size:14px;color:#dbe3f2;margin-top:8px;line-height:1.65}
 .fex{font-size:13px;color:var(--warn);margin-top:6px}
 .fuse{font-size:13px;color:#9fe6c0;margin-top:6px;line-height:1.55}
+.fmn{font-size:13px;color:#e7c6ff;background:#241a33;border-radius:8px;padding:7px 10px;margin-top:7px;line-height:1.6}
 .ftier{font-size:11px;padding:1px 7px;border-radius:20px;font-weight:700}
 .ftier.t1{background:#3a1720;color:#ff9a9a}.ftier.t2{background:#2a2417;color:#ffcf7a}.ftier.t3{background:#123524;color:#7fe6a8}
 .lp{padding:7px 10px;border-radius:8px;margin:2px 0;font-size:15px;line-height:1.8;color:#dbe3f2}
@@ -247,6 +248,7 @@ function formulaView(){
       <div class="fname">${esc(it.name)}${it.tier?` <span class="ftier ${it.tier==='核心'?'t1':it.tier==='口訣'?'t3':'t2'}">${it.tier}</span>`:''}</div>
       <div class="ff">${esc(it.f)}</div>
       <div class="fkid">🧒 ${esc(it.kid)}</div>
+      ${it.mn?`<div class="fmn">🧠 口訣：${esc(it.mn)}</div>`:''}
       ${it.use?`<div class="fuse">💡 用處：${esc(it.use)}</div>`:''}
       ${it.ex?`<div class="fex">✏️ 例：${esc(it.ex)}</div>`:''}
     </div>`).join("")}
