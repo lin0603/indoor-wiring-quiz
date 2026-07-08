@@ -88,6 +88,11 @@ kbd{background:#0c1120;border:1px solid var(--line);border-radius:5px;padding:1p
 .pill{background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:13px;cursor:pointer}
 .pill.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 select{background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;font-family:inherit}
+.fcard{background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:13px 14px;margin-bottom:10px}
+.fname{font-size:13px;color:var(--brand2);font-weight:700;margin-bottom:6px}
+.ff{font-family:ui-monospace,Menlo,monospace;font-size:16px;font-weight:700;color:#fff;background:#0c1120;border:1px solid var(--line);border-radius:8px;padding:9px 11px;overflow-x:auto;white-space:nowrap}
+.fkid{font-size:14px;color:#dbe3f2;margin-top:8px;line-height:1.65}
+.fex{font-size:13px;color:var(--warn);margin-top:6px}
 </style>
 </head>
 <body>
@@ -96,6 +101,7 @@ select{background:var(--card2);color:var(--tx);border:1px solid var(--line);bord
 <script>
 const DATA = /*__DATA__*/null;
 const QS = DATA.questions, CATS = DATA.cats, WEIGHTS = DATA.weights||{}, HOTC = DATA.hotConcepts||[];
+const FORMULAS = DATA.formulas||[];
 const QMAP = Object.fromEntries(QS.map(q=>[q.id,q]));
 const KEY = "wiring5gu-v1";
 const K = "①②③④", CN = "一二三四";
@@ -162,6 +168,7 @@ function home(){
    <button onclick="start('sr', pool5(), '全部練習')">▶ 開始練習（高比重與錯題優先）</button>
    <button class="ghost" onclick="startExplain(pool5(),'講解模式 · 全部')">📖 講解模式（看為何對 / 為何錯）</button>
    <button class="ghost" onclick="startListen(orderSR(pool5()),'聽力 · 全部')">🎧 聽力模式（用聽的，免動手）</button>
+   <button class="ghost" onclick="formulaView()">📐 必背公式（小學生也懂）</button>
    <div class="row">
      <button class="ghost" onclick="start('wrong', wrongBookList(), '錯題本')" ${wb?'':'disabled'}>🔁 只練錯題(${wb})</button>
      <button class="ghost" onclick="startExam()">📝 模擬考(40)</button>
@@ -218,6 +225,24 @@ function home(){
   }).join("")}`:''}
 
   <div class="link" onclick="resetAll()">重置所有進度</div>`;
+}
+
+// ─────────── 必背公式頁 ───────────
+function formulaView(){
+  stopListen(); session=null;
+  app.innerHTML=`
+  <div class="qtop"><span onclick="home()">‹ 首頁</span><span>必背公式 · 小學生也懂</span><span></span></div>
+  <div class="sub">考前掃這頁就好：每條公式配一個生活比喻和小例子。</div>
+  ${FORMULAS.map(g=>`
+    <div class="sec-t"><span>${g.g}</span></div>
+    ${g.items.map(it=>`<div class="fcard">
+      <div class="fname">${esc(it.name)}</div>
+      <div class="ff">${esc(it.f)}</div>
+      <div class="fkid">🧒 ${esc(it.kid)}</div>
+      ${it.ex?`<div class="fex">✏️ 例：${esc(it.ex)}</div>`:''}
+    </div>`).join("")}
+  `).join("")}
+  <div class="btns" style="margin-top:14px"><button class="ghost" onclick="home()">回首頁</button></div>`;
 }
 
 // ─────────── 練習 / 模擬考 ───────────

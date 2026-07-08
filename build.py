@@ -200,6 +200,10 @@ def load_extra():
     print("  載入其他場次", len(recs), "題")
     return recs
 
+def load_formulas():
+    p = os.path.join(BASE, "data", "formulas.json")
+    return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else []
+
 def load_mem():
     """五股各題的口語記憶說明（data/mem_<exam>.json，{id: 說明}）。"""
     mem = {}
@@ -257,6 +261,7 @@ def payload_obj(recs):
         "questions": recs,
         "weights": compute_weights(recs),
         "hotConcepts": [{"name": n, "ids": ids} for n, ids in HOT_CONCEPTS],
+        "formulas": load_formulas(),
     }
 
 def write_json(recs):
