@@ -93,6 +93,9 @@ select{background:var(--card2);color:var(--tx);border:1px solid var(--line);bord
 .ff{font-family:ui-monospace,Menlo,monospace;font-size:16px;font-weight:700;color:#fff;background:#0c1120;border:1px solid var(--line);border-radius:8px;padding:9px 11px;overflow-x:auto;white-space:nowrap}
 .fkid{font-size:14px;color:#dbe3f2;margin-top:8px;line-height:1.65}
 .fex{font-size:13px;color:var(--warn);margin-top:6px}
+.fuse{font-size:13px;color:#9fe6c0;margin-top:6px;line-height:1.55}
+.ftier{font-size:11px;padding:1px 7px;border-radius:20px;font-weight:700}
+.ftier.t1{background:#3a1720;color:#ff9a9a}.ftier.t2{background:#2a2417;color:#ffcf7a}.ftier.t3{background:#123524;color:#7fe6a8}
 </style>
 </head>
 <body>
@@ -232,13 +235,14 @@ function formulaView(){
   stopListen(); session=null;
   app.innerHTML=`
   <div class="qtop"><span onclick="home()">‹ 首頁</span><span>必背公式 · 小學生也懂</span><span></span></div>
-  <div class="sub">考前掃這頁就好：每條公式配一個生活比喻和小例子。</div>
+  <div class="sub">🔴核心=考試會直接用到；🟡次要=偶爾一題或幫理解；🟢口訣=用背的不用算。點下方看每條的現實用處。</div>
   ${FORMULAS.map(g=>`
     <div class="sec-t"><span>${g.g}</span></div>
     ${g.items.map(it=>`<div class="fcard">
-      <div class="fname">${esc(it.name)}</div>
+      <div class="fname">${esc(it.name)}${it.tier?` <span class="ftier ${it.tier==='核心'?'t1':it.tier==='口訣'?'t3':'t2'}">${it.tier}</span>`:''}</div>
       <div class="ff">${esc(it.f)}</div>
       <div class="fkid">🧒 ${esc(it.kid)}</div>
+      ${it.use?`<div class="fuse">💡 用處：${esc(it.use)}</div>`:''}
       ${it.ex?`<div class="fex">✏️ 例：${esc(it.ex)}</div>`:''}
     </div>`).join("")}
   `).join("")}
