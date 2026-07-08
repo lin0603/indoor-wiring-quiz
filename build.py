@@ -11,7 +11,7 @@
 
 用法：  python3 build.py
 """
-import json, os, html, re
+import json, os, html, re, glob
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 
@@ -200,6 +200,14 @@ def load_extra():
     print("  載入其他場次", len(recs), "題")
     return recs
 
+def load_mem():
+    """五股各題的口語記憶說明（data/mem_<exam>.json，{id: 說明}）。"""
+    mem = {}
+    for p in sorted(glob.glob(os.path.join(BASE, "data", "mem_*.json"))):
+        with open(p, encoding="utf-8") as f:
+            mem.update(json.load(f))
+    return mem
+
 def load_rationales():
     import glob
     why = {}
@@ -216,6 +224,7 @@ def load_rationales():
 
 def build_records():
     why_map = load_rationales()
+    mem_map = load_mem()
     recs = []
     for exam, num, cat, q, opts, ans, exp in Q:
         assert len(opts) == 4, (exam, num)
@@ -230,6 +239,8 @@ def build_records():
         }
         if rid in why_map:
             rec["why"] = why_map[rid]
+        if mem_map.get(rid):
+            rec["mem"] = mem_map[rid]
         recs.append(rec)
     recs += load_extra()   # 花蓮 / 宜蘭 等其他場次（各自獨立、不併入五股統計）
     # 檢查五股每份考卷 40 題
@@ -294,6 +305,7 @@ def write_anki(recs):
 .exp1{color:#333;font-size:16px;margin:8px 0;font-weight:600}
 .wok,.wno{font-size:15px;margin:5px 0;padding:7px 9px;border-radius:7px;line-height:1.5}
 .wok{background:#e6f7ec;color:#0a7d2c}.wno{background:#f7ecec;color:#8a3b3b}
+.mem{background:#fff6e5;border-left:3px solid #e8a13a;color:#7a5b1e;padding:10px;border-radius:8px;margin-top:8px;font-size:15px}
 """)
     deck = genanki.Deck(2059400110, "室內配線(五股)甄試")
     for r in recs:
@@ -310,6 +322,8 @@ def write_anki(recs):
             explain = (f'<div class="exp1">{html.escape(r["exp"])}</div>' if r["exp"] else "") + "".join(rows)
         else:
             explain = html.escape(r["exp"] or "")
+        if r.get("mem"):
+            explain += f'<div class="mem">💬 {html.escape(r["mem"])}</div>'
         note = genanki.Note(model=model, fields=[
             html.escape(r["q"]), opts_html, html.escape(ans_txt),
             explain, meta], tags=[r["cat"], r["exam"]] + (["高比重"] if r.get("hot") else []))

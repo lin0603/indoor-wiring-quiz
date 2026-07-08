@@ -67,6 +67,7 @@ button.sm{padding:9px 12px;font-size:14px;border-radius:11px;width:auto}
 .exp{background:var(--card2);border-left:3px solid var(--brand);border-radius:10px;padding:12px 14px;
  font-size:14.5px;color:#cdd6ea;margin:4px 0 14px;display:none}
 .exp.show{display:block}
+.mem{background:#2a2417;border-left:3px solid var(--warn);color:#f0d9a8;padding:11px 13px;border-radius:10px;font-size:14px;margin:4px 0 12px;line-height:1.55}
 .fb{font-weight:800;font-size:16px;margin:2px 0 10px;display:none}
 .fb.show{display:block}.fb.ok{color:var(--ok)}.fb.bad{color:var(--bad)}
 .hide{display:none!important}
@@ -256,7 +257,7 @@ function revealRationale(q){
     const i=+el.dataset.i, rz=el.querySelector(".rz");
     if(q.why && q.why[i-1]){ rz.textContent=(i===q.ans?'✅ ':'❌ ')+q.why[i-1]; el.classList.add("showrz") }
   });
-  if(q.exp){ const e=document.getElementById("exp"); e.className="exp show"; e.innerHTML="💡 "+esc(q.exp) }
+  if(q.exp){ const e=document.getElementById("exp"); e.className="exp show"; e.innerHTML="💡 "+esc(q.exp)+(q.mem?`<div class="mem">💬 ${esc(q.mem)}</div>`:"") }
 }
 function answer(pick){
   const s=session; if(s.answered) return; s.answered=true;
@@ -324,6 +325,7 @@ function explainView(){
       return `<div class="opt ${ok?'correct':'wrong'} dis showrz"><div class="k">${K[i]}</div>
         <div class="body">${esc(o)}${rz}</div></div>`}).join("")}
     ${q.exp?`<div class="exp show">💡 ${esc(q.exp)}</div>`:''}
+    ${q.mem?`<div class="mem">💬 ${esc(q.mem)}</div>`:''}
   </div>
   <div class="navbtns">
     <button class="ghost" onclick="explainNav(-1)" ${s.i?'':'disabled'}>‹ 上一題</button>
@@ -358,6 +360,7 @@ function listenView(){
     <div style="margin:6px 0">${q.opts.map((o,i)=>`<div style="font-size:14px;margin:2px 0;color:${i===q.ans-1?'var(--ok)':'var(--dim)'}">${K[i]} ${esc(o)}</div>`).join("")}</div>
     <div id="seg-ans" class="seg" style="color:var(--ok);font-weight:700">正解：${K[q.ans-1]} ${esc(q.opts[q.ans-1])}</div>
     ${q.exp?`<div id="seg-exp" class="seg" style="font-size:14px;color:#cdd6ea;margin-top:4px">💡 ${esc(q.exp)}</div>`:''}
+    ${q.mem?`<div id="seg-mem" class="seg mem" style="font-size:14px;margin-top:6px">💬 ${esc(q.mem)}</div>`:''}
     <div class="lbtn" style="background:${a.on?'var(--warn)':'var(--brand)'}" onclick="toggleListen()">${a.on?'⏸':'▶'}</div>
     <div class="center tag">${a.on?'朗讀中…（只唸題目、正解、詳解；鎖屏會中斷，建議保持螢幕開啟）':'按播放：自動連播「題目 → 正解 → 詳解」'}</div>
     <div class="ctrl">
@@ -375,11 +378,12 @@ function listenView(){
   <div class="tag center">鍵盤 <kbd>空白</kbd> 播放/暫停 · <kbd>←</kbd><kbd>→</kbd> 換題</div>`;
   hlSeg(null);
 }
-function hlSeg(id){ ['seg-q','seg-ans','seg-exp'].forEach(x=>{const el=document.getElementById(x); if(el) el.classList.toggle('cur', x===id);}); }
+function hlSeg(id){ ['seg-q','seg-ans','seg-exp','seg-mem'].forEach(x=>{const el=document.getElementById(x); if(el) el.classList.toggle('cur', x===id);}); }
 function segsFor(q){
   const s=[{t:`第 ${audio.i+1} 題。${ttsClean(q.q)}`, hi:'seg-q', gap:500}];
   s.push({t:`正確答案，選項${CN[q.ans-1]}，${ttsClean(q.opts[q.ans-1])}`, hi:'seg-ans', gap:400});
-  if(audio.readExp && q.exp) s.push({t:`解說。${ttsClean(q.exp)}`, hi:'seg-exp', gap:650});
+  if(audio.readExp && q.exp) s.push({t:`解說。${ttsClean(q.exp)}`, hi:'seg-exp', gap:450});
+  if(audio.readExp && q.mem) s.push({t:`白話講，${ttsClean(q.mem)}`, hi:'seg-mem', gap:650});
   return s;
 }
 // gen 世代守衛：cancel() 會觸發舊 utterance 的 onend，用 gen 比對可讓過期回呼失效，避免兩條朗讀鏈同時前進造成「亂跳」
