@@ -200,6 +200,10 @@ def load_extra():
     print("  載入其他場次", len(recs), "題")
     return recs
 
+def load_lessons():
+    p = os.path.join(BASE, "data", "lessons.json")
+    return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else []
+
 def load_formulas():
     p = os.path.join(BASE, "data", "formulas.json")
     return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else []
@@ -262,6 +266,7 @@ def payload_obj(recs):
         "weights": compute_weights(recs),
         "hotConcepts": [{"name": n, "ids": ids} for n, ids in HOT_CONCEPTS],
         "formulas": load_formulas(),
+        "lessons": load_lessons(),
     }
 
 def write_json(recs):
