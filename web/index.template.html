@@ -176,7 +176,7 @@ function home(){
    <button class="ghost" onclick="startExplain(pool5(),'講解模式 · 全部')">📖 講解模式（看為何對 / 為何錯）</button>
    <button class="ghost" onclick="startListen(orderSR(pool5()),'聽力 · 全部')">🎧 聽力模式（用聽的，免動手）</button>
    <button class="ghost" onclick="formulaView()">📐 必背公式（小學生也懂）</button>
-   ${LESSONS.length?`<button class="ghost" onclick="lessonView(0)">📖 觀念導讀 · 邊聽邊懂（可循環朗讀）</button>`:''}
+   ${LESSONS.length?`<button class="ghost" onclick="lessonsHome()">📖 觀念導讀 · 邊聽邊懂（多篇 · 可循環朗讀）</button>`:''}
    <div class="row">
      <button class="ghost" onclick="start('wrong', wrongBookList(), '錯題本')" ${wb?'':'disabled'}>🔁 只練錯題(${wb})</button>
      <button class="ghost" onclick="startExam()">📝 模擬考(40)</button>
@@ -258,11 +258,23 @@ function formulaView(){
 let lsp={on:false, rate:0.95, loop:true, gen:0, idx:0};
 function ttsLesson(s){ return ttsClean(String(s)).replace(/÷/g,'除以').replace(/×/g,'乘').replace(/=/g,'等於'); }
 function stopLesson(){ if(window.speechSynthesis){ lsp.on=false; lsp.gen++; try{speechSynthesis.cancel()}catch(e){} } }
+function lessonsHome(){
+  stopListen(); stopLesson(); session=null;
+  app.innerHTML=`
+  <div class="qtop"><span onclick="home()">‹ 首頁</span><span>觀念導讀目錄</span><span></span></div>
+  <h1>觀念導讀 · 邊聽邊懂</h1>
+  <div class="sub">從實用情境出發，回推到原理，再對到題庫。每篇都能按 ▶ 循環朗讀。</div>
+  ${LESSONS.map((L,i)=>`<div class="cat" style="margin-bottom:10px" onclick="lessonView(${i})">
+    <div class="ct"><span>📖 ${esc(L.title)}</span><span class="num">▶ 聽</span></div>
+    <div class="wt" style="color:var(--dim);white-space:normal;line-height:1.5">${esc(L.sub||'')}</div>
+  </div>`).join("")}
+  <div class="btns" style="margin-top:8px"><button class="ghost" onclick="home()">回首頁</button></div>`;
+}
 function lessonView(idx){
   stopListen(); session=null; lsp.idx=idx;
   const L=LESSONS[idx];
   app.innerHTML=`
-  <div class="qtop"><span onclick="home()">‹ 首頁</span><span>觀念導讀</span><span></span></div>
+  <div class="qtop"><span onclick="lessonsHome()">‹ 導讀目錄</span><span>${idx+1}/${LESSONS.length}</span><span onclick="home()">首頁</span></div>
   <h1>${esc(L.title)}</h1>
   <div class="sub">${esc(L.sub||'')}</div>
   <div class="card" style="position:sticky;top:6px;z-index:5;display:flex;gap:12px;align-items:center;padding:12px">
@@ -278,6 +290,8 @@ function lessonView(idx){
   <div class="card">
     ${L.paras.map((p,i)=>p.h?`<div id="lp-${i}" class="lp lph">${esc(p.h)}</div>`:`<div id="lp-${i}" class="lp">${esc(p.t)}</div>`).join("")}
   </div>
+  ${idx+1<LESSONS.length?`<button class="ghost" onclick="lessonView(${idx+1})">下一篇：${esc(LESSONS[idx+1].title)} ›</button>`:''}
+  <div class="link" onclick="lessonsHome()">‹ 回導讀目錄</div>
   <div class="tag center">💡 鎖屏會中斷朗讀，聽的時候讓螢幕保持開著</div>`;
   hlLesson(null);
 }
