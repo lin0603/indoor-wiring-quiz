@@ -88,6 +88,10 @@ kbd{background:#0c1120;border:1px solid var(--line);border-radius:5px;padding:1p
 .pill{background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:13px;cursor:pointer}
 .pill.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 select{background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;font-family:inherit}
+.cin{width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:#0c1120;color:var(--tx);font-size:16px;font-family:inherit}
+.clabel{display:block;font-size:12px;color:var(--dim);margin:8px 0 4px}
+.cout{margin-top:12px;padding:12px;border-radius:10px;background:#0c1120;border:1px dashed var(--line);font-size:16px;min-height:1.6em;color:var(--tx)}
+.cbig{font-size:22px;color:var(--ok);font-weight:800}
 .fcard{background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:13px 14px;margin-bottom:10px}
 .fname{font-size:13px;color:var(--brand2);font-weight:700;margin-bottom:6px}
 .ff{font-family:ui-monospace,Menlo,monospace;font-size:16px;font-weight:700;color:#fff;background:#0c1120;border:1px solid var(--line);border-radius:8px;padding:9px 11px;overflow-x:auto;white-space:nowrap}
@@ -178,6 +182,7 @@ function home(){
    <button class="ghost" onclick="startListen(orderSR(pool5()),'聽力 · 全部')">🎧 聽力模式（用聽的，免動手）</button>
    <button class="ghost" onclick="formulaView()">📐 必背公式（小學生也懂）</button>
    ${LESSONS.length?`<button class="ghost" onclick="lessonsHome()">📖 觀念導讀 · 邊聽邊懂（多篇 · 可循環朗讀）</button>`:''}
+   <button class="ghost" onclick="calcView()">🧮 計算機（電阻/電容/歐姆/壓降）</button>
    <div class="row">
      <button class="ghost" onclick="start('wrong', wrongBookList(), '錯題本')" ${wb?'':'disabled'}>🔁 只練錯題(${wb})</button>
      <button class="ghost" onclick="startExam()">📝 模擬考(40)</button>
@@ -316,6 +321,70 @@ function playLesson(){
     try{ speechSynthesis.speak(u); }catch(e){ if(gen===lsp.gen){ k++; setTimeout(go,gap); } }
   })();
 }
+
+// ─────────── 計算機 ───────────
+function calcView(){
+  stopListen(); stopLesson(); session=null;
+  app.innerHTML=`
+  <div class="qtop"><span onclick="home()">‹ 首頁</span><span>計算機</span><span></span></div>
+  <div class="sub">算完直接核對答案；電容會自動幫你套「相反」的公式，不會再搞混。</div>
+  <div class="card">
+    <div class="fname">電阻 R（Ω）串／並聯</div>
+    <label class="clabel">多個電阻用逗號分隔，例：3, 6</label>
+    <input class="cin" id="cr" placeholder="3, 6" inputmode="decimal">
+    <div class="navbtns"><button class="ghost sm" onclick="calcR('s')">串聯（相加）</button><button class="ghost sm" onclick="calcR('p')">並聯（倒數和）</button></div>
+    <div class="cout" id="crOut">—</div>
+  </div>
+  <div class="card">
+    <div class="fname">電容 C（μF）串／並聯 <span style="color:var(--warn);font-weight:600">← 跟電阻相反</span></div>
+    <label class="clabel">多個電容用逗號分隔，例：3, 6</label>
+    <input class="cin" id="cc" placeholder="3, 6" inputmode="decimal">
+    <div class="navbtns"><button class="ghost sm" onclick="calcC('s')">串聯（倒數和）</button><button class="ghost sm" onclick="calcC('p')">並聯（相加）</button></div>
+    <div class="cout" id="ccOut">—</div>
+  </div>
+  <div class="card">
+    <div class="fname">歐姆定律 ＆ 功率</div>
+    <label class="clabel">任填兩格，按計算補齊其餘＋功率</label>
+    <div class="row">
+      <div><label class="clabel">電壓 V</label><input class="cin" id="cohmV" type="number" inputmode="decimal"></div>
+      <div><label class="clabel">電流 I</label><input class="cin" id="cohmI" type="number" inputmode="decimal"></div>
+      <div><label class="clabel">電阻 R</label><input class="cin" id="cohmR" type="number" inputmode="decimal"></div>
+    </div>
+    <button class="ghost sm" style="margin-top:10px" onclick="calcOhm()">計算</button>
+    <div class="cout" id="cohmOut">—</div>
+    <div class="tag" style="margin-top:6px">V=I×R　P=V×I=I²×R=V²÷R</div>
+  </div>
+  <div class="card">
+    <div class="fname">電壓降（銅導體）</div>
+    <div class="row">
+      <div><label class="clabel">電流 I（A）</label><input class="cin" id="cvdI" type="number" placeholder="20" inputmode="decimal"></div>
+      <div><label class="clabel">線長 L（m,單程）</label><input class="cin" id="cvdL" type="number" placeholder="50" inputmode="decimal"></div>
+      <div><label class="clabel">截面積 A（mm²）</label><input class="cin" id="cvdA" type="number" placeholder="5.5" inputmode="decimal"></div>
+    </div>
+    <label class="clabel">線路方式</label>
+    <select id="cvdType"><option value="35.6">單相二線式（係數 35.6）</option><option value="30.8">三相三線式（係數 30.8）</option></select>
+    <button class="ghost sm" style="margin-top:10px" onclick="calcVd()">計算電壓降</button>
+    <div class="cout" id="cvdOut">—</div>
+    <div class="tag" style="margin-top:6px">e = 係數 × L × I ÷ (1000 × A)　※一般壓降 ≤ 2~3%</div>
+  </div>
+  <div class="btns"><button class="ghost" onclick="home()">回首頁</button></div>`;
+}
+function kNums(s){ return String(s).split(/[,，\s]+/).map(Number).filter(n=>!isNaN(n)&&n>0); }
+function kR2(n){ return Math.round(n*100)/100; }
+function calcR(mode){ const a=kNums(document.getElementById('cr').value), o=document.getElementById('crOut');
+  if(!a.length){o.textContent='請先輸入電阻值';return;} const v=mode==='s'?a.reduce((s,x)=>s+x,0):1/a.reduce((s,x)=>s+1/x,0);
+  o.innerHTML=`${mode==='s'?'串聯':'並聯'}總電阻 = <span class="cbig">${kR2(v)} Ω</span>`; }
+function calcC(mode){ const a=kNums(document.getElementById('cc').value), o=document.getElementById('ccOut');
+  if(!a.length){o.textContent='請先輸入電容值';return;} const v=mode==='s'?1/a.reduce((s,x)=>s+1/x,0):a.reduce((s,x)=>s+x,0);
+  o.innerHTML=`${mode==='s'?'串聯':'並聯'}總電容 = <span class="cbig">${kR2(v)} μF</span>`; }
+function calcOhm(){ let V=parseFloat(document.getElementById('cohmV').value),I=parseFloat(document.getElementById('cohmI').value),R=parseFloat(document.getElementById('cohmR').value);
+  const o=document.getElementById('cohmOut'), has=[!isNaN(V),!isNaN(I),!isNaN(R)].filter(Boolean).length;
+  if(has<2){o.textContent='請至少填兩格';return;}
+  if(isNaN(V))V=I*R; else if(isNaN(I))I=V/R; else if(isNaN(R))R=V/I; const P=V*I;
+  o.innerHTML=`V=${kR2(V)} V　I=${kR2(I)} A　R=${kR2(R)} Ω<br>功率 P = <span class="cbig">${kR2(P)} W</span>`; }
+function calcVd(){ const I=parseFloat(document.getElementById('cvdI').value),L=parseFloat(document.getElementById('cvdL').value),A=parseFloat(document.getElementById('cvdA').value),k=parseFloat(document.getElementById('cvdType').value);
+  const o=document.getElementById('cvdOut'); if([I,L,A].some(isNaN)){o.textContent='請填齊 I、L、A';return;}
+  const e=k*L*I/(1000*A); o.innerHTML=`電壓降 e = <span class="cbig">${kR2(e)} V</span>`; }
 
 // ─────────── 練習 / 模擬考 ───────────
 function start(mode, list, title){
