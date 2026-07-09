@@ -178,17 +178,24 @@ function home(){
    <div class="bar" style="margin-top:14px"><i style="width:${Math.round(mst/total*100)}%"></i></div>
    <div class="tag" style="margin-top:6px">整體精熟度 ${Math.round(mst/total*100)}%　今日已練 ${td} 題</div>
   </div>
+  <div class="sec-t"><span>🎯 練習</span></div>
   <div class="btns">
    <button onclick="start('sr', pool5(), '全部練習')">▶ 開始練習（高比重與錯題優先）</button>
-   <button class="ghost" onclick="startExplain(pool5(),'講解模式 · 全部')">📖 講解模式（看為何對 / 為何錯）</button>
-   <button class="ghost" onclick="startListen(orderSR(pool5()),'聽力 · 全部')">🎧 聽力模式（用聽的，免動手）</button>
-   <button class="ghost" onclick="formulaView()">📐 必背公式（小學生也懂）</button>
-   ${LESSONS.length?`<button class="ghost" onclick="lessonsHome()">📖 觀念導讀 · 邊聽邊懂（多篇 · 可循環朗讀）</button>`:''}
-   <button class="ghost" onclick="calcView()">🧮 計算機（電阻/電容/歐姆/壓降）</button>
    <div class="row">
      <button class="ghost" onclick="start('wrong', wrongBookList(), '錯題本')" ${wb?'':'disabled'}>🔁 只練錯題(${wb})</button>
-     <button class="ghost" onclick="startExam()">📝 模擬考(40)</button>
+     <button class="ghost" onclick="examMenu()">📝 模擬考</button>
    </div>
+  </div>
+  <div class="sec-t"><span>📚 學習</span></div>
+  <div class="btns">
+   <button class="ghost" onclick="startExplain(pool5(),'講解模式 · 全部')">📖 講解模式（為何對／為何錯）</button>
+   <button class="ghost" onclick="startListen(orderSR(pool5()),'聽力 · 全部')">🎧 聽力模式（用聽的）</button>
+   ${LESSONS.length?`<button class="ghost" onclick="lessonsHome()">📖 觀念導讀（可循環朗讀）</button>`:''}
+  </div>
+  <div class="sec-t"><span>🛠 工具</span></div>
+  <div class="btns">
+   <button class="ghost" onclick="calcView()">🧮 計算機（電阻/電容/歐姆/壓降）</button>
+   <button class="ghost" onclick="formulaView()">📐 必背公式（小學生也懂）</button>
   </div>
 
   <div class="sec-t"><span class="fire">🔥 高比重考點（跨年度重複＝幾乎必考，先吃這些）</span></div>
@@ -410,9 +417,34 @@ function start(mode, list, title){
   session={list:ordered, i:0, mode, title, correct:0, wrongThisRun:[], answered:false};
   quiz();
 }
-function startExam(){
-  session={list:shuffle(pool5()).slice(0,40), i:0, mode:'sim', title:'模擬考(五股)', correct:0, wrongThisRun:[], answered:false, start:Date.now()};
+function examMenu(){
+  stopListen(); stopLesson(); session=null;
+  const exams=[...new Set(QS.map(q=>q.exam))];
+  app.innerHTML=`
+  <div class="qtop"><span onclick="home()">‹ 首頁</span><span>模擬考</span><span></span></div>
+  <div class="sub">40題計分、達90分達標。挑一種考法：</div>
+  <div class="btns">
+    <button onclick="startExam('五股')">🎯 五股隨機 40 題（你的考卷來源）</button>
+    <button class="ghost" onclick="startExam('all')">🎲 亂混模式 · 全部場次(${QS.length}題)隨機 40 題</button>
+  </div>
+  <div class="sec-t"><span>📅 分年度整卷模擬（照原卷考一份）</span></div>
+  <div class="grid">
+    ${exams.map(e=>{const n=poolExam(e).length; return `<div class="cat" onclick="startExamPaper('${e}')">
+      <div class="ct"><span>📄 ${e}</span><span class="num">${n}題</span></div></div>`}).join("")}
+  </div>
+  <div class="btns" style="margin-top:12px"><button class="ghost" onclick="home()">回首頁</button></div>`;
+}
+function runSim(list, title){
+  if(!list.length) return;
+  session={list, i:0, mode:'sim', title, correct:0, wrongThisRun:[], answered:false, start:Date.now()};
   quiz();
+}
+function startExam(scope){
+  const pool = scope==='all' ? QS : pool5();
+  runSim(shuffle(pool).slice(0,40), scope==='all'?'模擬考·亂混(全部場次)':'模擬考·五股');
+}
+function startExamPaper(examId){
+  runSim(poolExam(examId).slice().sort((a,b)=>a.num-b.num), '模擬考·'+examId+' 整卷');
 }
 function quiz(){
   const s=session, q=s.list[s.i], n=s.list.length, r=ST.s[q.id];
@@ -474,7 +506,7 @@ function finish(){
         <div class="qa">正解：${K[q.ans-1]} ${esc(q.opts[q.ans-1])}${q.exp?'　'+esc(q.exp):''}</div></div>`).join("")}</div>`:''}
      <div class="btns">
        ${s.wrongThisRun.length?`<button onclick="startExplain(session.wrongThisRun.slice(),'講解 · 本次錯題')">📖 講解本次錯題</button>`:''}
-       <button class="ghost" onclick="startExam()">再考一次</button>
+       <button class="ghost" onclick="examMenu()">選其他模擬考</button>
        <button class="ghost" onclick="home()">回首頁</button></div>`;
   } else {
     const pct=Math.round(s.correct/s.list.length*100);
