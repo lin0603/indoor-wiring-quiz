@@ -121,14 +121,39 @@ const KEY = "wiring5gu-v1";
 const K = "①②③④", CN = "一二三四";
 
 let ST = load();
-function load(){ try{return JSON.parse(localStorage.getItem(KEY))||{s:{},day:{}}}catch(e){return {s:{},day:{}}} }
-function save(){ localStorage.setItem(KEY, JSON.stringify(ST)) }
+function load(){ try{const s=JSON.parse(localStorage.getItem(KEY))||{}; s.s=s.s||{}; s.day=s.day||{}; s.log=s.log||{}; return s;}catch(e){return {s:{},day:{},log:{}}} }
+function save(){ ST.updatedAt=Date.now(); localStorage.setItem(KEY, JSON.stringify(ST)); scheduleCloudPush(); }
+
+// ── 雲端同步（透過你自己的 Worker proxy，token 不在前端）──
+const SKEY="wiring5gu-sync";
+let SCFG=(()=>{try{return JSON.parse(localStorage.getItem(SKEY))||{}}catch(e){return {}}})();
+function saveCfg(){ localStorage.setItem(SKEY, JSON.stringify(SCFG)); }
+let _pushT=null;
+function scheduleCloudPush(){ if(!SCFG.url||!SCFG.key) return; clearTimeout(_pushT); _pushT=setTimeout(cloudPush, 2500); }
+async function cloudPush(){
+  if(!SCFG.url||!SCFG.key) return false;
+  try{ const r=await fetch(SCFG.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'save',key:SCFG.key,state:ST})});
+    const d=await r.json(); if(d.error) throw new Error(d.error); SCFG.lastSync=Date.now(); saveCfg(); return true;
+  }catch(e){ console.warn('push fail',e); return false; }
+}
+async function cloudPull(){
+  const r=await fetch(SCFG.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'load',key:SCFG.key})});
+  const d=await r.json(); if(d.error) throw new Error(d.error); return d.state;
+}
+async function cloudPullMerge(){
+  if(!SCFG.url||!SCFG.key) return 'no-config';
+  try{ const remote=await cloudPull();
+    if(remote && (remote.updatedAt||0) > (ST.updatedAt||0)){ remote.s=remote.s||{}; remote.day=remote.day||{}; remote.log=remote.log||{}; ST=remote; localStorage.setItem(KEY, JSON.stringify(ST)); return 'pulled'; }
+    return 'local-newer';
+  }catch(e){ return 'error:'+e.message; }
+}
 function rec(id){ return ST.s[id] || (ST.s[id]={box:0,seen:0,right:0,wrong:0,wrongEver:0}) }
 function todayKey(){ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate() }
 function grade(id, correct){
   const r=rec(id); r.seen++;
   if(correct){ r.right++; r.box=Math.min(5,(r.box||0)+1) }
-  else { r.wrong++; r.wrongEver++; r.box=Math.max(1,(r.box||0)-2) }
+  else { r.wrong++; r.wrongEver++; r.box=Math.max(1,(r.box||0)-2);
+    const tk=todayKey(); ST.log[tk]=ST.log[tk]||[]; if(!ST.log[tk].includes(id)) ST.log[tk].push(id); }
   ST.day[todayKey()]=(ST.day[todayKey()]||0)+1; save();
 }
 function mastered(id){ return (ST.s[id]?.box||0)>=4 }
@@ -196,6 +221,10 @@ function home(){
   <div class="btns">
    <button class="ghost" onclick="calcView()">🧮 計算機（電阻/電容/歐姆/壓降）</button>
    <button class="ghost" onclick="formulaView()">📐 必背公式（小學生也懂）</button>
+   <div class="row">
+     <button class="ghost" onclick="logView()">📅 每日紀錄</button>
+     <button class="ghost" onclick="syncView()">☁️ 雲端同步</button>
+   </div>
   </div>
 
   <div class="sec-t"><span class="fire">🔥 高比重考點（跨年度重複＝幾乎必考，先吃這些）</span></div>
@@ -330,6 +359,60 @@ function playLesson(){
     try{ speechSynthesis.speak(u); }catch(e){ if(gen===lsp.gen){ k++; setTimeout(go,gap); } }
   })();
 }
+
+// ─────────── 每日紀錄 / 雲端同步 / 備份 ───────────
+function logView(){
+  stopListen(); stopLesson(); session=null;
+  const days=Object.keys(ST.log||{}).sort().reverse();
+  app.innerHTML=`
+  <div class="qtop"><span onclick="home()">‹ 首頁</span><span>每日紀錄</span><span></span></div>
+  <div class="sub">每天做了幾題、錯了哪些題。點題目看講解。</div>
+  ${days.length?days.map(dt=>{const ids=[...new Set(ST.log[dt])].filter(id=>QMAP[id]); const done=ST.day[dt]||0;
+    return `<div class="card">
+      <div class="fname" style="font-size:14px">${dt}　<span class="tag">做 ${done} 題 · 錯 ${ids.length} 題</span></div>
+      ${ids.map(id=>{const q=QMAP[id]; return `<div class="wq" style="cursor:pointer" onclick="startExplain([QMAP['${id}']],'講解 · ${dt}')">${esc(q.q)}<div class="qa">正解：${K[q.ans-1]} ${esc(q.opts[q.ans-1])}</div></div>`}).join('')||'<div class="tag">這天沒有錯題 👍</div>'}
+    </div>`}).join(''):'<div class="card"><div class="tag">還沒有紀錄，去練幾題吧。</div></div>'}
+  <div class="btns"><button class="ghost" onclick="home()">回首頁</button></div>`;
+}
+function syncView(){
+  stopListen(); stopLesson(); session=null;
+  const on=!!(SCFG.url&&SCFG.key);
+  app.innerHTML=`
+  <div class="qtop"><span onclick="home()">‹ 首頁</span><span>雲端同步</span><span></span></div>
+  <div class="sub">進度與每日錯題存到你的 Turso（透過你的 Worker）。換手機也在。Token 藏在 Worker，不外流。</div>
+  <div class="card">
+    <label class="clabel">Worker 網址（部署後取得）</label>
+    <input class="cin" id="syncUrl" placeholder="https://...workers.dev" value="${esc(SCFG.url||'')}">
+    <label class="clabel">同步碼（你資料的鑰匙，換裝置用同一組）</label>
+    <input class="cin" id="syncKey" placeholder="按下方產生，或貼舊的" value="${esc(SCFG.key||'')}">
+    <div class="navbtns">
+      <button class="ghost sm" onclick="genSyncKey()">🔑 產生同步碼</button>
+      <button class="ghost sm" onclick="saveSync()">💾 儲存</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="navbtns">
+      <button class="ghost sm" onclick="doPush()">⬆️ 立即上傳</button>
+      <button class="ghost sm" onclick="doPull()">⬇️ 從雲端下載</button>
+    </div>
+    <div class="cout" id="syncOut">${on?('已設定 · 最後同步：'+(SCFG.lastSync?new Date(SCFG.lastSync).toLocaleString():'尚未')):'尚未設定（填上方兩格並儲存）'}</div>
+  </div>
+  <div class="card">
+    <div class="fname">本機備份（免網路）</div>
+    <div class="navbtns">
+      <button class="ghost sm" onclick="exportData()">📤 匯出 JSON</button>
+      <button class="ghost sm" onclick="document.getElementById('impF').click()">📥 匯入 JSON</button>
+    </div>
+    <input type="file" id="impF" accept="application/json" style="display:none" onchange="importData(this)">
+  </div>
+  <div class="btns"><button class="ghost" onclick="home()">回首頁</button></div>`;
+}
+function genSyncKey(){ const a=new Uint8Array(24); crypto.getRandomValues(a); document.getElementById('syncKey').value=[...a].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+function saveSync(){ SCFG.url=(document.getElementById('syncUrl').value||'').trim().replace(/\/$/,''); SCFG.key=(document.getElementById('syncKey').value||'').trim(); saveCfg(); const o=document.getElementById('syncOut'); if(o)o.textContent='已儲存設定'; }
+async function doPush(){ saveSync(); const o=document.getElementById('syncOut'); o.textContent='上傳中…'; const ok=await cloudPush(); o.textContent=ok?('✅ 已上傳 '+new Date().toLocaleString()):'❌ 上傳失敗，檢查網址/同步碼'; }
+async function doPull(){ saveSync(); const o=document.getElementById('syncOut'); o.textContent='下載中…'; const r=await cloudPullMerge(); o.textContent=r==='pulled'?'✅ 已從雲端還原，回首頁看':r==='local-newer'?'本機較新，未覆蓋（可先上傳）':'❌ '+r; }
+function exportData(){ const b=new Blob([JSON.stringify(ST)],{type:'application/json'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='室內配線進度備份.json'; a.click(); URL.revokeObjectURL(u); }
+function importData(inp){ const f=inp.files&&inp.files[0]; if(!f)return; const rd=new FileReader(); rd.onload=()=>{ try{ const d=JSON.parse(rd.result); d.s=d.s||{}; d.day=d.day||{}; d.log=d.log||{}; ST=d; save(); alert('已匯入'); home(); }catch(e){ alert('檔案格式錯誤'); } }; rd.readAsText(f); }
 
 // ─────────── 計算機 ───────────
 function calcHelpView(){
@@ -661,7 +744,7 @@ document.addEventListener("keydown",e=>{
 });
 window.addEventListener("beforeunload", ()=>{stopListen();stopLesson();});
 
-home();
+(async()=>{ try{ if(SCFG.url&&SCFG.key) await cloudPullMerge(); }catch(e){} home(); })();
 </script>
 </body>
 </html>
