@@ -124,24 +124,37 @@ let ST = load();
 function load(){ try{const s=JSON.parse(localStorage.getItem(KEY))||{}; s.s=s.s||{}; s.day=s.day||{}; s.log=s.log||{}; return s;}catch(e){return {s:{},day:{},log:{}}} }
 function save(){ ST.updatedAt=Date.now(); localStorage.setItem(KEY, JSON.stringify(ST)); scheduleCloudPush(); }
 
-// ── 雲端同步（透過你自己的 Worker proxy，token 不在前端）──
+// ── 雲端同步（前端直連 Turso；URL/token 存在本機瀏覽器，不進 repo）──
 const SKEY="wiring5gu-sync";
 let SCFG=(()=>{try{return JSON.parse(localStorage.getItem(SKEY))||{}}catch(e){return {}}})();
 function saveCfg(){ localStorage.setItem(SKEY, JSON.stringify(SCFG)); }
+function syncReady(){ return !!(SCFG.url&&SCFG.token&&SCFG.key); }
+function tursoEndpoint(){ return SCFG.url.replace(/^libsql:\/\//,'https://').replace(/\/$/,'')+'/v2/pipeline'; }
+async function tursoRun(sql, args){
+  const r=await fetch(tursoEndpoint(),{method:'POST',headers:{'Authorization':'Bearer '+SCFG.token,'Content-Type':'application/json'},
+    body:JSON.stringify({requests:[{type:'execute',stmt:{sql,args:args||[]}},{type:'close'}]})});
+  const d=await r.json(); const res=d&&d.results&&d.results[0];
+  if(!r.ok||!res||res.type==='error') throw new Error((res&&res.error&&res.error.message)||('HTTP '+r.status));
+  return res.response.result;
+}
+const _T=(v)=>({type:'text',value:String(v)});
 let _pushT=null;
-function scheduleCloudPush(){ if(!SCFG.url||!SCFG.key) return; clearTimeout(_pushT); _pushT=setTimeout(cloudPush, 2500); }
+function scheduleCloudPush(){ if(!syncReady()) return; clearTimeout(_pushT); _pushT=setTimeout(cloudPush, 2500); }
 async function cloudPush(){
-  if(!SCFG.url||!SCFG.key) return false;
-  try{ const r=await fetch(SCFG.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'save',key:SCFG.key,state:ST})});
-    const d=await r.json(); if(d.error) throw new Error(d.error); SCFG.lastSync=Date.now(); saveCfg(); return true;
+  if(!syncReady()) return false;
+  try{ await tursoRun('CREATE TABLE IF NOT EXISTS kv(k TEXT PRIMARY KEY, v TEXT, updated INTEGER)');
+    await tursoRun('INSERT INTO kv(k,v,updated) VALUES(?,?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated',
+      [_T(SCFG.key), _T(JSON.stringify(ST)), {type:'integer',value:String(Date.now())}]);
+    SCFG.lastSync=Date.now(); saveCfg(); return true;
   }catch(e){ console.warn('push fail',e); return false; }
 }
 async function cloudPull(){
-  const r=await fetch(SCFG.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'load',key:SCFG.key})});
-  const d=await r.json(); if(d.error) throw new Error(d.error); return d.state;
+  await tursoRun('CREATE TABLE IF NOT EXISTS kv(k TEXT PRIMARY KEY, v TEXT, updated INTEGER)');
+  const res=await tursoRun('SELECT v FROM kv WHERE k=?',[_T(SCFG.key)]);
+  const rows=res.rows||[]; return rows.length? JSON.parse(rows[0][0].value) : null;
 }
 async function cloudPullMerge(){
-  if(!SCFG.url||!SCFG.key) return 'no-config';
+  if(!syncReady()) return 'no-config';
   try{ const remote=await cloudPull();
     if(remote && (remote.updatedAt||0) > (ST.updatedAt||0)){ remote.s=remote.s||{}; remote.day=remote.day||{}; remote.log=remote.log||{}; ST=remote; localStorage.setItem(KEY, JSON.stringify(ST)); return 'pulled'; }
     return 'local-newer';
@@ -376,13 +389,15 @@ function logView(){
 }
 function syncView(){
   stopListen(); stopLesson(); session=null;
-  const on=!!(SCFG.url&&SCFG.key);
+  const on=syncReady();
   app.innerHTML=`
   <div class="qtop"><span onclick="home()">‹ 首頁</span><span>雲端同步</span><span></span></div>
-  <div class="sub">進度與每日錯題存到你的 Turso（透過你的 Worker）。換手機也在。Token 藏在 Worker，不外流。</div>
+  <div class="sub">進度與每日錯題直接存到你的 Turso。URL/Token 只存在這台手機瀏覽器，不上傳、不進原始碼。換裝置再貼一次即可。</div>
   <div class="card">
-    <label class="clabel">Worker 網址（部署後取得）</label>
-    <input class="cin" id="syncUrl" placeholder="https://...workers.dev" value="${esc(SCFG.url||'')}">
+    <label class="clabel">Turso 資料庫網址</label>
+    <input class="cin" id="syncUrl" placeholder="libsql://xxx.turso.io" value="${esc(SCFG.url||'')}">
+    <label class="clabel">Turso Token（只存本機）</label>
+    <input class="cin" id="syncTok" type="password" placeholder="貼上 Turso token" value="${esc(SCFG.token||'')}">
     <label class="clabel">同步碼（你資料的鑰匙，換裝置用同一組）</label>
     <input class="cin" id="syncKey" placeholder="按下方產生，或貼舊的" value="${esc(SCFG.key||'')}">
     <div class="navbtns">
@@ -408,7 +423,7 @@ function syncView(){
   <div class="btns"><button class="ghost" onclick="home()">回首頁</button></div>`;
 }
 function genSyncKey(){ const a=new Uint8Array(24); crypto.getRandomValues(a); document.getElementById('syncKey').value=[...a].map(b=>b.toString(16).padStart(2,'0')).join(''); }
-function saveSync(){ SCFG.url=(document.getElementById('syncUrl').value||'').trim().replace(/\/$/,''); SCFG.key=(document.getElementById('syncKey').value||'').trim(); saveCfg(); const o=document.getElementById('syncOut'); if(o)o.textContent='已儲存設定'; }
+function saveSync(){ SCFG.url=(document.getElementById('syncUrl').value||'').trim(); SCFG.token=(document.getElementById('syncTok').value||'').trim(); SCFG.key=(document.getElementById('syncKey').value||'').trim(); saveCfg(); const o=document.getElementById('syncOut'); if(o)o.textContent='已儲存設定'; }
 async function doPush(){ saveSync(); const o=document.getElementById('syncOut'); o.textContent='上傳中…'; const ok=await cloudPush(); o.textContent=ok?('✅ 已上傳 '+new Date().toLocaleString()):'❌ 上傳失敗，檢查網址/同步碼'; }
 async function doPull(){ saveSync(); const o=document.getElementById('syncOut'); o.textContent='下載中…'; const r=await cloudPullMerge(); o.textContent=r==='pulled'?'✅ 已從雲端還原，回首頁看':r==='local-newer'?'本機較新，未覆蓋（可先上傳）':'❌ '+r; }
 function exportData(){ const b=new Blob([JSON.stringify(ST)],{type:'application/json'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='室內配線進度備份.json'; a.click(); URL.revokeObjectURL(u); }
@@ -744,7 +759,7 @@ document.addEventListener("keydown",e=>{
 });
 window.addEventListener("beforeunload", ()=>{stopListen();stopLesson();});
 
-(async()=>{ try{ if(SCFG.url&&SCFG.key) await cloudPullMerge(); }catch(e){} home(); })();
+(async()=>{ try{ if(syncReady()) await cloudPullMerge(); }catch(e){} home(); })();
 </script>
 </body>
 </html>
