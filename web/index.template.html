@@ -523,7 +523,7 @@ function examMenu(){
   <div class="sub">40題計分、達90分達標。挑一種考法：</div>
   <div class="btns">
     <button onclick="startExam('五股')">🎯 五股隨機 40 題（你的考卷來源）</button>
-    <button class="ghost" onclick="startExam('all')">🎲 亂混模式 · 以五股為主(28)＋其他場次(12)</button>
+    <button class="ghost" onclick="startExam('all')">🎲 亂混模式 · 五股全120題打散一次考完</button>
   </div>
   <div class="sec-t"><span>📅 分年度整卷模擬（照原卷考一份）</span></div>
   <div class="grid">
@@ -539,9 +539,7 @@ function runSim(list, title){
 }
 function startExam(scope){
   if(scope==='all'){
-    const five=shuffle(pool5()).slice(0,28);
-    const others=shuffle(QS.filter(q=>(q.site||'五股')!=='五股')).slice(0,12);
-    runSim(shuffle(five.concat(others)), '模擬考·亂混(五股為主)');
+    runSim(shuffle(pool5()), '模擬考·亂混(五股120題全打散)');
     return;
   }
   runSim(shuffle(pool5()).slice(0,40), '模擬考·五股');
