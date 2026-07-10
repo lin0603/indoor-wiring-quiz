@@ -170,7 +170,7 @@ function grade(id, correct){
   ST.day[todayKey()]=(ST.day[todayKey()]||0)+1; save();
 }
 function mastered(id){ return (ST.s[id]?.box||0)>=4 }
-function isWrongBook(id){ const r=ST.s[id]; return r && r.wrongEver>0 && r.box<4 }
+function isWrongBook(id){ const r=ST.s[id]; if(!(r && r.wrongEver>0 && r.box<4)) return false; const q=QMAP[id]; return !!q && q.site!=='花蓮'; }
 function masteredCount(){ return QS.filter(q=>mastered(q.id)).length }
 function wrongBookList(){ return QS.filter(q=>isWrongBook(q.id)) }
 function hotList(){ return QS.filter(q=>q.hot) }
