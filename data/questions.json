@@ -8187,5 +8187,10 @@
    "code": "function volDrop(I, L, A, type){\n  const k = (type === '單相二線') ? 35.6 : 30.8; // 係數\n  return k * L * I / (1000 * A);\n}\n\n// volDrop(20, 50, 5.5, '單相二線')\n// = 35.6 × 50 × 20 ÷ (1000 × 5.5)\n// = 35600 ÷ 5500 ≈ 6.47 V",
    "ex": "20A、50m、5.5mm²、單相二線 → 6.47V"
   }
- ]
+ ],
+ "cloud": {
+  "url": "libsql://electronic-lin0603.aws-ap-northeast-1.turso.io",
+  "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODM2NDU5OTksImlkIjoiMDE5ZjQ5OTUtZTIwMS03ZWI1LThkNmEtNzA2MzU0MWI2YmY4Iiwia2lkIjoiSmdXbzlxQVpMeXFEbTVEWWtzYWNsRHdOdkhUakJPV0JDVWx0VVV4c1BkVSIsInJpZCI6Ijk0OTY0MWYzLWU4ZmYtNGQwYS04YThhLTUxNjk1ZTM2MGJiMyJ9.k8t1siJf6j6Fbpc26hQbe_Cc5Fanx8CbcbniPJTV0sUw-Nc2CQpI5KLRO2BMi57CiohZzzr_mTt8LMl-8p4ABg",
+  "key": "5gu-shared-a7f3c9e1b2d84056"
+ }
 }

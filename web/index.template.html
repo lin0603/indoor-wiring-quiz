@@ -126,7 +126,7 @@ function save(){ ST.updatedAt=Date.now(); localStorage.setItem(KEY, JSON.stringi
 
 // ── 雲端同步（前端直連 Turso；URL/token 存在本機瀏覽器，不進 repo）──
 const SKEY="wiring5gu-sync";
-let SCFG=(()=>{try{return JSON.parse(localStorage.getItem(SKEY))||{}}catch(e){return {}}})();
+let SCFG=(()=>{ let s={}; try{s=JSON.parse(localStorage.getItem(SKEY))||{}}catch(e){} const c=(DATA&&DATA.cloud)||{}; return {url:s.url||c.url, token:s.token||c.token, key:s.key||c.key, lastSync:s.lastSync}; })();
 function saveCfg(){ localStorage.setItem(SKEY, JSON.stringify(SCFG)); }
 function syncReady(){ return !!(SCFG.url&&SCFG.token&&SCFG.key); }
 function tursoEndpoint(){ return SCFG.url.replace(/^libsql:\/\//,'https://').replace(/\/$/,'')+'/v2/pipeline'; }
@@ -392,7 +392,7 @@ function syncView(){
   const on=syncReady();
   app.innerHTML=`
   <div class="qtop"><span onclick="home()">‹ 首頁</span><span>雲端同步</span><span></span></div>
-  <div class="sub">進度與每日錯題直接存到你的 Turso。URL/Token 只存在這台手機瀏覽器，不上傳、不進原始碼。換裝置再貼一次即可。</div>
+  <div class="sub">已內建雲端設定：每台裝置打開就自動同步到你的 Turso，什麼都不用設。下面欄位可自行覆蓋（留空用內建）。</div>
   <div class="card">
     <label class="clabel">Turso 資料庫網址</label>
     <input class="cin" id="syncUrl" placeholder="libsql://xxx.turso.io" value="${esc(SCFG.url||'')}">
