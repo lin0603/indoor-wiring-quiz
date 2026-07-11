@@ -121,7 +121,13 @@ const KEY = "wiring5gu-v1";
 const K = "①②③④", CN = "一二三四";
 
 let ST = load();
-function load(){ try{const s=JSON.parse(localStorage.getItem(KEY))||{}; s.s=s.s||{}; s.day=s.day||{}; s.log=s.log||{}; return s;}catch(e){return {s:{},day:{},log:{}}} }
+function isFive(id){ const q=QMAP[id]; return !!q && (q.site||'五股')==='五股'; }
+function purgeNonFive(st){
+  if(st&&st.s) for(const id in st.s){ if(!isFive(id)) delete st.s[id]; }
+  if(st&&st.log) for(const d in st.log){ st.log[d]=(st.log[d]||[]).filter(isFive); if(!st.log[d].length) delete st.log[d]; }
+  return st;
+}
+function load(){ try{const s=JSON.parse(localStorage.getItem(KEY))||{}; s.s=s.s||{}; s.day=s.day||{}; s.log=s.log||{}; purgeNonFive(s); return s;}catch(e){return {s:{},day:{},log:{}}} }
 function save(){ ST.updatedAt=Date.now(); localStorage.setItem(KEY, JSON.stringify(ST)); scheduleCloudPush(); }
 
 // ── 雲端同步（前端直連 Turso；URL/token 存在本機瀏覽器，不進 repo）──
@@ -156,21 +162,24 @@ async function cloudPull(){
 async function cloudPullMerge(){
   if(!syncReady()) return 'no-config';
   try{ const remote=await cloudPull();
-    if(remote && (remote.updatedAt||0) > (ST.updatedAt||0)){ remote.s=remote.s||{}; remote.day=remote.day||{}; remote.log=remote.log||{}; ST=remote; localStorage.setItem(KEY, JSON.stringify(ST)); return 'pulled'; }
+    if(remote && (remote.updatedAt||0) > (ST.updatedAt||0)){ remote.s=remote.s||{}; remote.day=remote.day||{}; remote.log=remote.log||{}; purgeNonFive(remote); ST=remote; localStorage.setItem(KEY, JSON.stringify(ST)); return 'pulled'; }
     return 'local-newer';
   }catch(e){ return 'error:'+e.message; }
 }
 function rec(id){ return ST.s[id] || (ST.s[id]={box:0,seen:0,right:0,wrong:0,wrongEver:0}) }
 function todayKey(){ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate() }
 function grade(id, correct){
-  const r=rec(id); r.seen++;
-  if(correct){ r.right++; r.box=Math.min(5,(r.box||0)+1) }
-  else { r.wrong++; r.wrongEver++; r.box=Math.max(1,(r.box||0)-2);
-    const tk=todayKey(); ST.log[tk]=ST.log[tk]||[]; if(!ST.log[tk].includes(id)) ST.log[tk].push(id); }
-  ST.day[todayKey()]=(ST.day[todayKey()]||0)+1; save();
+  ST.day[todayKey()]=(ST.day[todayKey()]||0)+1;
+  if(isFive(id)){
+    const r=rec(id); r.seen++;
+    if(correct){ r.right++; r.box=Math.min(5,(r.box||0)+1) }
+    else { r.wrong++; r.wrongEver++; r.box=Math.max(1,(r.box||0)-2);
+      const tk=todayKey(); ST.log[tk]=ST.log[tk]||[]; if(!ST.log[tk].includes(id)) ST.log[tk].push(id); }
+  }
+  save();
 }
 function mastered(id){ return (ST.s[id]?.box||0)>=4 }
-function isWrongBook(id){ const r=ST.s[id]; if(!(r && r.wrongEver>0 && r.box<4)) return false; const q=QMAP[id]; return !!q && q.site!=='花蓮'; }
+function isWrongBook(id){ const r=ST.s[id]; return !!r && r.wrongEver>0 && r.box<4 && isFive(id); }
 function masteredCount(){ return QS.filter(q=>mastered(q.id)).length }
 function wrongBookList(){ return QS.filter(q=>isWrongBook(q.id)) }
 function hotList(){ return QS.filter(q=>q.hot) }
