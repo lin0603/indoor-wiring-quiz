@@ -116,6 +116,7 @@ const QS = DATA.questions, CATS = DATA.cats, WEIGHTS = DATA.weights||{}, HOTC = 
 const FORMULAS = DATA.formulas||[];
 const LESSONS = DATA.lessons||[];
 const CALCHELP = DATA.calcHelp||[];
+const QUICK = DATA.quick||[];
 const QMAP = Object.fromEntries(QS.map(q=>[q.id,q]));
 const KEY = "wiring5gu-v1";
 const K = "①②③④", CN = "一二三四";
@@ -243,6 +244,7 @@ function home(){
   <div class="btns">
    <button class="ghost" onclick="calcView()">🧮 計算機（電阻/電容/歐姆/壓降）</button>
    <button class="ghost" onclick="formulaView()">📐 必背公式（小學生也懂）</button>
+   <button class="ghost" onclick="quickView()">⚡ 速算複習（計算題最快解法）</button>
    <div class="row">
      <button class="ghost" onclick="logView()">📅 每日紀錄</button>
      <button class="ghost" onclick="syncView()">☁️ 雲端同步</button>
@@ -380,6 +382,21 @@ function playLesson(){
     u.onerror=()=>{ if(gen!==lsp.gen) return; k++; setTimeout(go,gap); };
     try{ speechSynthesis.speak(u); }catch(e){ if(gen===lsp.gen){ k++; setTimeout(go,gap); } }
   })();
+}
+
+// ─────────── 速算複習 ───────────
+function quickView(){
+  stopListen(); stopLesson(); session=null;
+  app.innerHTML=`
+  <div class="qtop"><span onclick="home()">‹ 首頁</span><span>速算複習</span><span></span></div>
+  <div class="sub">所有計算題型的最快解法，考前掃一遍。每條：題型 → 速算式 → 一步示範。</div>
+  ${QUICK.map(g=>`<div class="sec-t"><span>${esc(g.g)}</span></div>
+    ${g.items.map(it=>`<div class="fcard">
+      <div class="fname" style="color:var(--tx);font-size:14px">${esc(it.t)}</div>
+      <div class="ff">${esc(it.q)}</div>
+      <div class="fex" style="color:#9fe6c0">⚡ ${esc(it.demo)}</div>
+    </div>`).join("")}`).join("")}
+  <div class="btns"><button class="ghost" onclick="home()">回首頁</button></div>`;
 }
 
 // ─────────── 每日紀錄 / 雲端同步 / 備份 ───────────

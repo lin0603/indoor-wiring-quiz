@@ -200,6 +200,10 @@ def load_extra():
     print("  載入其他場次", len(recs), "題")
     return recs
 
+def load_quick():
+    p = os.path.join(BASE, "data", "quickcalc.json")
+    return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else []
+
 def load_cloud():
     p = os.path.join(BASE, "data", "cloud.json")
     return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else {}
@@ -277,6 +281,7 @@ def payload_obj(recs):
         "lessons": load_lessons(),
         "calcHelp": load_calc_help(),
         "cloud": load_cloud(),
+        "quick": load_quick(),
     }
 
 def write_json(recs):
